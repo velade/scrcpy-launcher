@@ -1,2 +1,7 @@
-# scrcpy-launcher
-A launcher for scrcpy
+# Scrcpy啟動器
+一個簡單的scrcpy的圖形化界面啟動器。
+
+## 基本功能
+- 即時刷新的設備列表
+- 設備別名管理
+- 簡易的常用設定
