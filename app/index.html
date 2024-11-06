@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrcpy啟動器</title>
+    <script src="/app/velfun4.min.js"></script>
+    <script src="/app/script.js"></script>
+    <link rel="stylesheet" href="/app/style.css">
+</head>
+
+<body>
+    <!-- 定義圖標 -->
+    <svg style="display: none;">
+        <symbol id="icon-edit" viewBox="0 0 16 16">
+            <path
+                d="m12 9v1h3v-1zm-2 2v1h5v-1zm-2 2v1h7v-1zm4.238-12-0.35217 0.36046-8.97 9.0943-0.029002 0.04558c-0.061 0.099-0.27119 0.4489-0.58419 1.0869-0.314 0.638-0.70032 1.5108-1.0123 2.4928l-0.29002 0.91979 0.91979-0.29002c0.85454-0.27528 1.6883-0.61386 2.4928-1.0123 0.638-0.314 0.9859-0.52019 1.0869-0.58419l0.045575-0.029 9.4548-9.3222zm-7.8113 9.1592 7.7782-7.7782 1.4142 1.4142-7.7782 7.7782zm-0.53724 0.73058 1.2209 1.2209-0.17816 0.1754c7e-3 -5e-3 -0.37922 0.22676-0.96122 0.51376-0.214 0.105-0.53617 0.22098-0.83417 0.33698l-0.27345-0.27345c0.116-0.298 0.23198-0.62016 0.33698-0.83416 0.287-0.582 0.51914-0.96584 0.51514-0.95984z"
+                fill="currentColor" font-family="Ubuntu" font-size="15px" font-weight="400" letter-spacing="0"
+                text-anchor="middle" word-spacing="0" />
+        </symbol>
+        <symbol id="icon-view" viewBox="0 0 16 16">
+            <g transform="matrix(.90463 0 0 .83333 .76299 1.3333)" fill="currentColor">
+                <path transform="matrix(1.1054 0 0 1.2 -.84343 -1.6)"
+                    d="m7.998 2.0391c-3.7699 0.004577-7.0701 2.3668-8.0078 5.7305a1.042 0.95988 0 0 0 0 0.47852c0.94569 3.3561 4.2458 5.7106 8.0098 5.7129a1.042 0.95988 0 0 0 0.0019531 0c3.7699-0.004584 7.0701-2.3668 8.0078-5.7305a1.042 0.95988 0 0 0 0-0.48047c-0.94569-3.3561-4.2458-5.7086-8.0098-5.7109a1.042 0.95988 0 0 0-0.0019531 0zm0.0019531 0.96094c3.2948 0.0020405 6.1722 2.0544 7 4.9922-0.82087 2.9444-3.7 5.0038-7 5.0078-3.2948-0.002041-6.1722-2.0544-7-4.9922 0.82087-2.9444 3.7-5.0038 7-5.0078z"
+                    fill="currentColor" />
+            </g>
+            <path
+                d="m8 5a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3zm0 1a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2z"
+                fill="currentColor" />
+        </symbol>
+        <symbol id="icon-refresh" viewBox="0 0 16 16">
+            <path d="m8 1a7 7 0 0 0-6.707 5h1.0605a6 6 0 0 1 5.6465-4 6 6 0 0 1 5.8125 4.5879l-2.1328-0.57031c-0.26756-0.071693-0.53964 0.085954-0.61133 0.35352-0.071693 0.26756 0.085955 0.53964 0.35352 0.61133l2.8984 0.77734c0.26756 0.071693 0.53964-0.085954 0.61133-0.35352l0.77734-2.8984c0.071693-0.26756-0.085954-0.53964-0.35352-0.61133-0.26756-0.071693-0.54159 0.085954-0.61328 0.35352l-0.28906 1.0762a7 7 0 0 0-6.4531-4.3262zm-6.5215 7c-0.21317 0.0082246-0.40269 0.1537-0.46094 0.37109l-0.77734 2.8984c-0.071693 0.26756 0.085954 0.53964 0.35352 0.61133s0.54159-0.085954 0.61328-0.35352l0.27344-1.0234a7 7 0 0 0 6.5195 4.4961 7 7 0 0 0 6.707-5h-1.0605a6 6 0 0 1-5.6465 4 6 6 0 0 1-5.8652-4.8125l2.1328 0.57227c0.26756 0.071693 0.54159-0.085954 0.61328-0.35352s-0.085954-0.54159-0.35352-0.61328l-2.8984-0.77539c-0.050168-0.013442-0.1012-0.019476-0.15039-0.017578z" fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="paint-order:stroke fill markers"/>
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 16 16">
+            <path d="m 5 4 c -0.265625 0 -0.519531 0.105469 -0.707031 0.292969 c -0.390625 0.390625 -0.390625 1.023437 0 1.414062 l 2.292969 2.292969 l -2.292969 2.292969 c -0.390625 0.390625 -0.390625 1.023437 0 1.414062 s 1.023437 0.390625 1.414062 0 l 2.292969 -2.292969 l 2.292969 2.292969 c 0.390625 0.390625 1.023437 0.390625 1.414062 0 s 0.390625 -1.023437 0 -1.414062 l -2.292969 -2.292969 l 2.292969 -2.292969 c 0.390625 -0.390625 0.390625 -1.023437 0 -1.414062 c -0.1875 -0.1875 -0.441406 -0.292969 -0.707031 -0.292969 s -0.519531 0.105469 -0.707031 0.292969 l -2.292969 2.292969 l -2.292969 -2.292969 c -0.1875 -0.1875 -0.441406 -0.292969 -0.707031 -0.292969 z m 0 0" fill="currentColor"/>
+        </symbol>
+    </svg>
+
+    <div class="titlebar">
+        Scrcpy啟動器
+        <div class="close">
+            <svg width="24" height="24"><use href="#icon-close"></use></svg>
+        </div>
+    </div>
+    <div class="main">
+        <div class="settings">
+            <label class="setting"><span>MOD鍵</span><input type="text" id="mod_key" placeholder="lctrl,lsuper"></label>
+            <label class="setting"><span>不傳遞音頻</span><input type="checkbox" id="no_audio"></label>
+            <label class="setting"><span>禁用輸入</span><input type="checkbox" id="no_control"></label>
+            <label class="setting"><span>保持喚醒</span><input type="checkbox" id="stay_awake"></label>
+            <label class="setting"><span>關閉設備螢幕</span><input type="checkbox" id="turn_screen_off"></label>
+            <label class="setting"><span>物理鍵盤模式</span><input type="checkbox" id="uhid"></label>
+            <label class="setting"><span>其它參數</span><input type="text" id="other"></label>
+        </div>
+        <div class="devicetitle">
+            <div class="title">設備</div>
+            <div class="buttons">
+                <!-- <div class="refresh" id="refresh_devices_list"><svg width="16" height="16"><use href="#icon-refresh"></use></svg></div> -->
+            </div>
+        </div>
+        <div class="list">
+            
+        </div>
+    </div>
+</body>
+
+</html>

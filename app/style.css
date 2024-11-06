@@ -1,0 +1,257 @@
+html,
+body {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0);
+    user-select: none;
+}
+
+html {
+    background-color: transparent;
+}
+
+.titlebar {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background-color: #077063;
+    color: whitesmoke;
+    font-weight: bold;
+    -webkit-app-region: drag;
+}
+
+.titlebar .close {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    top: 0;
+    left: 0;
+    -webkit-app-region: no-drag;
+    transition: 250ms;
+    color: whitesmoke;
+}
+
+.titlebar .close:hover {
+    background-color: brown;
+}
+
+.main {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: calc(100% - 32px);
+    background-color: rgba(245, 245, 245, 0.95);
+}
+
+.main .settings {
+    display: block;
+    position: absolute;
+    box-sizing: border-box;
+    padding: 20px;
+    bottom: 0;
+    left: 0;
+    width: 250px;
+    height: calc(100% - 50px);
+}
+
+.main .list {
+    display: block;
+    position: absolute;
+    width: calc(100% - 250px);
+    height: calc(100% - 50px);
+    bottom: 0;
+    right: 0;
+    background-color: whitesmoke;
+    border-radius: 15px 0 0 0;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 10;
+    transition: 250ms;
+}
+
+.main .settings .setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 40px;
+    font-size: 0;
+}
+
+.main .settings .setting>span {
+    display: inline-block;
+    height: 30px;
+    font-size: 16px;
+}
+
+input[type=text] {
+    margin: 0;
+    box-sizing: border-box;
+    border: none;
+    width: 100px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 16px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+input[type=text]:focus {
+    outline: none;
+    border: none;
+}
+
+.main .devicetitle {
+    display: flex;
+    position: absolute;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 250px);
+    height: 50px;
+    line-height: 50px;
+    right: 0;
+    top: 0;
+    box-sizing: border-box;
+    padding-right: 10px;
+    padding-left: 0;
+    transition: 250ms;
+}
+
+.main .devicetitle .title {
+    font-size: 30px;
+}
+
+.main .devicetitle .buttons .refresh {
+    display: block;
+    width: 16px;
+    height: 16px;
+    color: black;
+    transition: 1s;
+}
+
+.main .devicetitle .buttons .refresh:hover {
+    transform: rotate(359deg);
+}
+
+.main .devicetitle .buttons>*>svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.main .list .device {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 70px;
+    border-radius: 15px;
+    box-sizing: border-box;
+    padding: 5px;
+    box-sizing: border-box;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+.main .list .device .info {
+    display: flex;
+    width: 70%;
+    height: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.main .list .device .info .alias {
+    display: block;
+    width: 100%;
+    font-size: 16px;
+}
+
+.main .list .device .info .alias .t1 {
+    display: inline-block;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: text-bottom;
+}
+
+.main .list .device .info .alias .status {
+    display: inline-block;
+    vertical-align: text-bottom;
+    text-decoration: underline;
+}
+
+.main .list .device .info .realname {
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    color: gray;
+}
+
+.main .list .device .control {
+    display: flex;
+    width: 30%;
+    height: 100%;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.main .list .device .control>div {
+    display: block;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid #077063;
+    color: #077063;
+    margin-right: 5px;
+}
+
+.main .list .device .control>div:last-child {
+    margin-right: 0;
+}
+
+.main .list .device .control>div>svg {
+    height: 100%;
+}
+
+.main .list .device .control .connect.on {
+    background-color: #077063;
+    color: whitesmoke;
+}
+
+
+
+@media (max-width: 600px) {
+    .main .list {
+        width: calc(100% - 10px);
+        height: calc(100% - 55px);
+        right: 5px;
+        bottom: 5px;
+        border-radius: 15px;
+    }
+    .main .devicetitle {
+        width: 100%;
+        padding-right: 0;
+        padding-left: 5px;
+    }
+}

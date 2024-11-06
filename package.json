@@ -1,0 +1,31 @@
+{
+    "main": "app/index.html",
+    "name": "scrcpy_launcher",
+    "description": "",
+    "version": "1.0.0",
+    "keywords": [],
+    "chromium-args": "",
+    "window": {
+        "title": "Scrcpy啟動器",
+        "icon": "Scrcpy_logo.png",
+        "toolbar": false,
+        "frame": false,
+        "min_width": 350,
+        "min_height": 400,
+        "position": "center",
+        "as_desktop": false,
+        "resizable": true,
+        "always-on-top": false,
+        "visible_on_all_workspaces": false,
+        "fullscreen": false,
+        "show_in_taskbar": true,
+        "show": true,
+        "kiosk": false,
+        "transparent": true
+    },
+    "webkit": {
+        "plugin": true,
+        "java": false,
+        "page-cache": true
+    }
+}
