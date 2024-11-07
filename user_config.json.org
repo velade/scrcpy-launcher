@@ -1,20 +1,4 @@
 {
-    "system": {
-        "window": {
-            "size": [
-                800,
-                600
-            ],
-            "position": [
-                0,
-                0
-            ],
-            "x": 0,
-            "y": 0,
-            "width": 800,
-            "height": 600
-        }
-    },
     "args": {
         "mod_key": "lalt",
         "no_audio": true,
@@ -24,7 +8,5 @@
         "uhid": true,
         "other": ""
     },
-    "alias": {
-        
-    }
+    "alias": {}
 }

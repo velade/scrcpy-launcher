@@ -1,12 +1,16 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const { execSync, spawn } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
 let lasttimeGot = "";
 if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`)
 const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
-const win = nw.Window.get();
 let viewers = {};
 _(() => {
+    _(document.body).ccm({})
+    if (os.platform() == "win32") {
+        _(".titlebar").addClass("btr");
+    }
     const checklist = ["adb", "scrcpy"];
     for (const command of checklist) {
         if (!checkCommandSync(command)) {
@@ -14,12 +18,6 @@ _(() => {
             window.close();
         }
     }
-
-    // 設定窗口大小和位址
-    win.x = settings.system.window.x;
-    win.y = settings.system.window.y;
-    win.width = settings.system.window.width;
-    win.height = settings.system.window.height;
 
     _("#mod_key")[0].value = settings.args.mod_key;
     _("#no_audio")[0].checked = settings.args.no_audio;
@@ -39,22 +37,38 @@ _(() => {
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
     })
 
-    win.on("resize", () => {
-        settings.system.window.width = win.width;
-        settings.system.window.height = win.height;
-        settings.system.window.size = [win.width, win.height];
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
-    })
-
-    win.on("move", () => {
-        settings.system.window.x = win.x;
-        settings.system.window.y = win.y;
-        settings.system.window.position = [win.x, win.y];
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
-    })
-
     _(".close").bind("click", (e) => {
         window.close();
+    })
+
+    _(".hotkeys").bind("click", (e) => {
+        if (_(".shortcuts").hasClass("show")) {
+            _(".shortcuts").removeClass("show");
+        } else {
+            _(".shortcuts").addClass("show");
+        }
+    })
+
+    _.bind("keyup", (e) => {
+        if (e.code == "Escape") {
+            if (_(".shortcuts").hasClass("show")) {
+                _(".shortcuts").removeClass("show");
+            }
+        }
+    })
+
+    _("#connect_by_ip").bind("click", () => {
+        const ip = prompt("輸入 IP:端口(英文冒號)");
+        exec(`adb connect ${ip}`, (error, stdout, stderr) => {
+            console.log(stdout);
+            updateDevicesList();
+            const _item = _(`.control .connect[data-id="${ip}"]`);
+            if(_item.length === 1) {
+                _item.trigger("click");
+            }else{
+                alert("連接失敗！");
+            }
+        });
     })
 
     const keyMap = { "AltLeft": "lalt", "AltRight": "ralt", "ControlLeft": "lctrl", "ControlRight": "rctrl", "MetaLeft": "lsuper", "MetaRight": "rsuper" };
@@ -118,20 +132,22 @@ function getDevicesFromAdb() {
 function updateDevicesList() {
     const devices = getDevicesFromAdb();
     if (devices === false) return;
-    const mainList = _(document.querySelector(".main .list"));
+    const mainListFav = _(document.querySelector(".main .list .fav"));
+    const mainListOther = _(document.querySelector(".main .list .other"));
     const statusStr = { device: "已連接", offline: "離線", unauthorized: "未授權", "no permissions": "沒有權限" }
     const statusDesStr = { device: "設備已連接並給於授權，你可以正常查看這個設備", offline: "設備曾連接並記憶，但此刻處於離線狀態，不可查看", unauthorized: "設備等待手機端授權，請在手機上操作", "no permissions": "你無權連接這個設備" }
-    mainList.empty();
+    mainListFav.empty();
+    mainListOther.empty();
     for (const device of devices) {
         const alias = settings.alias[device.id] || device.id;
-
-        mainList.append(`<div class="device">
+        if(alias != device.id) {
+            mainListFav.append(`<div class="device">
                 <div class="info">
                     <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                     <div class="realname" title="${device.id}">${device.id}</div>
                 </div>
                 <div class="control">
-                    <div class="connect" data-id="${device.id}" onclick="view(this)" title="查看">
+                    <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-view"></use>
                         </svg>
@@ -141,8 +157,38 @@ function updateDevicesList() {
                             <use href="#icon-edit"></use>
                         </svg>
                     </div>
+                    <div class="disconnect" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#icon-disconnect"></use>
+                        </svg>
+                    </div>
                 </div>
-            </div>`)
+            </div>`);
+        }else {
+            mainListOther.append(`<div class="device">
+                    <div class="info">
+                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
+                        <div class="realname" title="${device.id}">${device.id}</div>
+                    </div>
+                    <div class="control">
+                        <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
+                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#icon-view"></use>
+                            </svg>
+                        </div>
+                        <div class="addAlias" data-id="${device.id}" onclick="setAlias(this)" title="編輯別名">
+                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#icon-edit"></use>
+                            </svg>
+                        </div>
+                        <div class="disconnect" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#icon-disconnect"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>`);
+        }
     }
 }
 
@@ -178,9 +224,18 @@ function setAlias(th) {
         delete settings.alias[deviceId];
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         lasttimeGot = "";
+        updateDevicesList();
     } else if (alias !== null) {
         settings.alias[deviceId] = alias;
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         lasttimeGot = "";
+        updateDevicesList();
+    }
+}
+
+function disconnect(th) {
+    const deviceId = _(th).attr("data-id");
+    if(confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")){
+        execSync(`adb disconnect ${deviceId}`);
     }
 }

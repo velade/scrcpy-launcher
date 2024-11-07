@@ -1,3 +1,27 @@
+/*滑块*/
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-thumb:vertical {
+	background-color: #CECECE;
+	border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+	background-color: #CECECE;
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: #888;
+}
+
+/*滑道*/
+::-webkit-scrollbar-track {
+	background: transparent;
+	border-radius: 3px;
+}
+
 html,
 body {
     display: block;
@@ -28,7 +52,7 @@ html {
     -webkit-app-region: drag;
 }
 
-.titlebar .close {
+.titlebar .close, .titlebar .hotkeys {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -40,6 +64,21 @@ html {
     -webkit-app-region: no-drag;
     transition: 250ms;
     color: whitesmoke;
+}
+
+.titlebar .hotkeys {
+    left: auto;
+    right: 0;
+}
+
+.titlebar.btr .close {
+    left: auto;
+    right: 0;
+}
+
+.titlebar.btr .hotkeys {
+    left: auto;
+    right: 32px;
 }
 
 .titlebar .close:hover {
@@ -81,8 +120,16 @@ html {
     transition: 250ms;
 }
 
+.main .list .fav {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+}
+
 .main .settings .setting {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     width: 100%;
@@ -114,6 +161,25 @@ input[type=text]:focus {
     border: none;
 }
 
+textarea {
+    margin: 0;
+    box-sizing: border-box;
+    border: none;
+    width: 100%;
+    height: 100px;
+    line-height: 30px;
+    font-size: 16px;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    resize: none;
+    padding: 10px;
+}
+
+textarea:focus {
+    outline: none;
+    border: none;
+}
+
 .main .devicetitle {
     display: flex;
     position: absolute;
@@ -135,16 +201,12 @@ input[type=text]:focus {
     font-size: 30px;
 }
 
-.main .devicetitle .buttons .refresh {
+.main .devicetitle .buttons .connect_by_ip {
     display: block;
     width: 16px;
     height: 16px;
     color: black;
     transition: 1s;
-}
-
-.main .devicetitle .buttons .refresh:hover {
-    transform: rotate(359deg);
 }
 
 .main .devicetitle .buttons>*>svg {
@@ -170,7 +232,7 @@ input[type=text]:focus {
 
 .main .list .device .info {
     display: flex;
-    width: 70%;
+    width: calc(100% - 125px);
     height: 100%;
     flex-wrap: wrap;
     align-items: center;
@@ -196,6 +258,7 @@ input[type=text]:focus {
     display: inline-block;
     vertical-align: text-bottom;
     text-decoration: underline;
+    font-size: 12px;
 }
 
 .main .list .device .info .realname {
@@ -210,7 +273,7 @@ input[type=text]:focus {
 
 .main .list .device .control {
     display: flex;
-    width: 30%;
+    width: 124px;
     height: 100%;
     align-items: center;
     justify-content: flex-end;
@@ -226,6 +289,22 @@ input[type=text]:focus {
     margin-right: 5px;
 }
 
+.main .list .device .control .connect {
+    border: 1px solid lightgray;
+    color: lightgray;
+    pointer-events: none;
+}
+
+.main .list .device .control .connect.Sdevice {
+    border: 1px solid #077063;
+    color: #077063;
+}
+
+.main .list .device .control .disconnect {
+    border: 1px solid brown;
+    color: brown;
+}
+
 .main .list .device .control>div:last-child {
     margin-right: 0;
 }
@@ -239,7 +318,47 @@ input[type=text]:focus {
     color: whitesmoke;
 }
 
+.shortcuts {
+    display: block;
+    position: fixed;
+    top: 47px;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 62px);
+    background-color: rgba(245, 245, 245, 1);
+    border-radius: 15px;
+    box-sizing: border-box;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: 250ms;
+}
+.shortcuts.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.shortcuts>._content {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
 
+.shortcuts>._content>table {
+    width: 100%;
+}
+
+.shortcuts>._content>table>thead {
+    position: sticky;
+    top: 0;
+    background-color: whitesmoke;
+}
+
+.shortcuts>._content>table>tbody tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.1);
+}
 
 @media (max-width: 600px) {
     .main .list {
@@ -251,7 +370,13 @@ input[type=text]:focus {
     }
     .main .devicetitle {
         width: 100%;
-        padding-right: 0;
         padding-left: 5px;
+    }
+    .shortcuts {
+        top: 32px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 32px);
+        border-radius: 0;
     }
 }
