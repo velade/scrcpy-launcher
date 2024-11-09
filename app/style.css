@@ -35,10 +35,6 @@ body {
     user-select: none;
 }
 
-html {
-    background-color: transparent;
-}
-
 .titlebar {
     display: block;
     position: relative;
@@ -298,6 +294,7 @@ textarea:focus {
 .main .list .device .control .connect.Sdevice {
     border: 1px solid #077063;
     color: #077063;
+    pointer-events: auto;
 }
 
 .main .list .device .control .disconnect {
