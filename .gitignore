@@ -19,3 +19,6 @@ src/Scrcpy啟動器
 src/user_config.json
 src/v8_context_snapshot.bin
 nwjs/*
+!nwjs/.gitkeep
+dist/*
+!dist/.gitkeep
