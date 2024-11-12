@@ -28,6 +28,7 @@ for platform in "$@"; do
         cd ../.packing/linux64
         mv nw Scrcpy啟動器
 
+        echo "開始打包檔案..."
         zip_file_linux64="Scrcpy_Launcher_Linux64_v${current_version}.tar.gz"
         tar -czvf "../../dist/${current_version}/$zip_file_linux64" .
         cd ../../
@@ -56,6 +57,7 @@ for platform in "$@"; do
         rm -rf nwjs-v0.64.1-win-ia32
         mv nw.exe Scrcpy啟動器.exe
 
+        echo "開始打包檔案..."
         zip_file_win32="Scrcpy_Launcher_Win32_v${current_version}.zip"
         zip -r "../../dist/${current_version}/$zip_file_win32" .
         cd ../../
@@ -84,6 +86,7 @@ for platform in "$@"; do
         rm -rf nwjs-v0.64.1-win-x64
         mv nw.exe Scrcpy啟動器.exe
 
+        echo "開始打包檔案..."
         zip_file_win64="Scrcpy_Launcher_Win64_v${current_version}.zip"
         zip -r "../../dist/${current_version}/$zip_file_win64" .
         cd ../../
