@@ -2,9 +2,29 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { exec, execSync, spawn } = require('child_process');
+
+const win = nw.Window.get();
+const Tray = new nw.Tray({ title: 'Tray', icon: 'app/tray.png' });
+const menu = new nw.Menu();
+menu.append(new nw.MenuItem({ type: 'separator' }));
+menu.append(new nw.MenuItem({
+    label: "顯示視窗", click: () => {
+        win.show();
+    }
+}));
+menu.append(new nw.MenuItem({
+    label: "退出", click: () => {
+        nw.App.quit();
+    }
+}));
+Tray.menu = menu;
+
 let lasttimeGot = "";
-if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`)
-const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
+const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, "utf-8"));
+if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`);
+const user_settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
+objUpdate(settings, user_settings);
+fs.writeFileSync(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8");
 let viewers = {};
 _(() => {
     _(document.body).ccm({})
@@ -19,6 +39,8 @@ _(() => {
         }
     }
 
+    if (settings.system.min_start) win.hide();
+
     _("#mod_key")[0].value = settings.args.mod_key;
     _("#no_audio")[0].checked = settings.args.no_audio;
     _("#no_control")[0].checked = settings.args.no_control;
@@ -26,19 +48,20 @@ _(() => {
     _("#turn_screen_off")[0].checked = settings.args.turn_screen_off;
     _("#uhid")[0].checked = settings.args.uhid;
     _("#other")[0].value = settings.args.other;
+    _("#min_start")[0].checked = settings.system.min_start;
 
     _(`.settings .setting input[type="text"]`).bind("change", (e) => {
-        settings.args[e.target.id] = _(e.target).val();
+        settings[_(e.target).attr("data-group")][e.target.id] = _(e.target).val();
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
     })
 
     _(`.settings .setting input[type="checkbox"]`).bind("change", (e) => {
-        settings.args[e.target.id] = _(e.target)[0].checked;
+        settings[_(e.target).attr("data-group")][e.target.id] = _(e.target)[0].checked;
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
     })
 
     _(".close").bind("click", (e) => {
-        window.close();
+        win.hide();
     })
 
     _(".hotkeys").bind("click", (e) => {
@@ -63,9 +86,9 @@ _(() => {
             console.log(stdout);
             updateDevicesList();
             const _item = _(`.control .connect[data-id="${ip}"]`);
-            if(_item.length === 1) {
+            if (_item.length === 1) {
                 _item.trigger("click");
-            }else{
+            } else {
                 alert("連接失敗！");
             }
         });
@@ -92,6 +115,7 @@ _(() => {
         _(e.target).trigger("change")
     })
 
+    updateDevicesList();
     setInterval(() => {
         updateDevicesList();
     }, 1000)
@@ -138,9 +162,13 @@ function updateDevicesList() {
     const statusDesStr = { device: "設備已連接並給於授權，你可以正常查看這個設備", offline: "設備曾連接並記憶，但此刻處於離線狀態，不可查看", unauthorized: "設備等待手機端授權，請在手機上操作", "no permissions": "你無權連接這個設備" }
     mainListFav.empty();
     mainListOther.empty();
+    // 移除所有菜单项
+    for (let i = menu.items.length - 4; i >= 0; i--) {
+        menu.removeAt(i);
+    }
     for (const device of devices) {
         const alias = settings.alias[device.id] || device.id;
-        if(alias != device.id) {
+        if (alias != device.id) {
             mainListFav.append(`<div class="device">
                 <div class="info">
                     <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
@@ -164,31 +192,42 @@ function updateDevicesList() {
                     </div>
                 </div>
             </div>`);
-        }else {
+        } else {
             mainListOther.append(`<div class="device">
-                    <div class="info">
+                <div class="info">
                         <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                         <div class="realname" title="${device.id}">${device.id}</div>
                     </div>
                     <div class="control">
                         <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
-                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                <use href="#icon-view"></use>
-                            </svg>
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <use href="#icon-view"></use>
+                        </svg>
                         </div>
                         <div class="addAlias" data-id="${device.id}" onclick="setAlias(this)" title="編輯別名">
-                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                <use href="#icon-edit"></use>
-                            </svg>
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <use href="#icon-edit"></use>
+                        </svg>
                         </div>
                         <div class="disconnect" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
-                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                <use href="#icon-disconnect"></use>
-                            </svg>
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <use href="#icon-disconnect"></use>
+                        </svg>
                         </div>
-                    </div>
-                </div>`);
+                        </div>
+                        </div>`);
         }
+        menu.insert(new nw.MenuItem({
+            label: alias, click: () => {
+                _(`.control .connect[data-id="${device.id}"]`).trigger("click");
+            }
+        }), 0);
+    }
+    Tray.menu = menu;
+    if (_(".device", mainListFav).length == 0) {
+        mainListFav.css("display: none");
+    } else {
+        mainListFav.css("display: block");
     }
 }
 
@@ -235,7 +274,27 @@ function setAlias(th) {
 
 function disconnect(th) {
     const deviceId = _(th).attr("data-id");
-    if(confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")){
+    if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")) {
         execSync(`adb disconnect ${deviceId}`);
     }
+}
+
+function objUpdate(template, data, struct = "") {
+    for (const [key, value] of Object.entries(eval(`template${struct}`))) {
+        if (key == "alias") continue;
+        if (isObject(value) || Array.isArray(value)) {
+            objUpdate(template, data, struct + "." + key);
+        } else {
+            try {
+                eval(`template${struct}.${key} = data${struct}.${key}`);
+            } catch (error) {
+
+            }
+        }
+    }
+    template.alias = _.deepCopy(data.alias);
+}
+
+function isObject(obj) {
+    return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }

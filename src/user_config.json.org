@@ -8,5 +8,8 @@
         "uhid": true,
         "other": ""
     },
+    "system": {
+        "min_start": false
+    },
     "alias": {}
 }

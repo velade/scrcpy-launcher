@@ -118,15 +118,21 @@
     </div>
     <div class="main">
         <div class="settings">
-            <label class="setting"><span>MOD鍵</span><input type="text" id="mod_key" placeholder="lctrl,lsuper"></label>
-            <label class="setting"><span>不傳遞音頻</span><input type="checkbox" id="no_audio"></label>
-            <label class="setting"><span>禁用輸入</span><input type="checkbox" id="no_control"></label>
-            <label class="setting"><span>保持喚醒</span><input type="checkbox" id="stay_awake"></label>
-            <label class="setting"><span>關閉設備螢幕</span><input type="checkbox" id="turn_screen_off"></label>
-            <label class="setting"><span>物理鍵盤模式</span><input type="checkbox" id="uhid"></label>
-            <label class="setting"><span>高級參數 <a href="void(0)"
-                        onclick="window.open('https://github.com/Genymobile/scrcpy/tree/master/doc', '', 'width=1366,height=768'); return false;">參考</a></span><textarea
-                    id="other"></textarea></label>
+            <label class="setting"><span>MOD鍵</span><input type="text" data-group="args" id="mod_key"
+                    placeholder="lctrl,lsuper"></label>
+            <label class="setting"><span>不傳遞音頻</span><input type="checkbox" data-group="args" id="no_audio"></label>
+            <label class="setting"><span>禁用輸入</span><input type="checkbox" data-group="args" id="no_control"></label>
+            <label class="setting"><span>保持喚醒</span><input type="checkbox" data-group="args" id="stay_awake"></label>
+            <label class="setting"><span>關閉設備螢幕</span><input type="checkbox" data-group="args"
+                    id="turn_screen_off"></label>
+            <label class="setting"><span>物理鍵盤模式</span><input type="checkbox" data-group="args" id="uhid"></label>
+            <label class="setting">
+                <span>高級參數 <a href="void(0)"
+                        onclick="window.open('https://github.com/Genymobile/scrcpy/tree/master/doc', '', 'width=1366,height=768'); return false;">參考</a></span>
+                <textarea data-group="args" id="other"></textarea>
+            </label>
+            <hr>
+            <label class="setting"><span>以最小化啟動</span><input type="checkbox" data-group="system" id="min_start"></label>
         </div>
         <div class="devicetitle">
             <div class="title">設備</div>
@@ -141,7 +147,7 @@
 
             </div>
             <div class="other">
-                
+
             </div>
         </div>
     </div>
