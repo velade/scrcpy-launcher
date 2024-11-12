@@ -14,7 +14,7 @@
         "width": 800,
         "height": 600,
         "min_width": 350,
-        "min_height": 400,
+        "min_height": 540,
         "position": "center",
         "as_desktop": false,
         "resizable": true,
