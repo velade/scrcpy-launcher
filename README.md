@@ -7,11 +7,14 @@
 - 簡易的常用設定
 
 ## 依賴
-- ADB：Scrcpy本身依賴ADB提供連接，因此你需要安裝ADB並將其加入到系統路徑，即你可以通過adb而不是path/to/adb來執行。
-- Scrcpy：起動器本身並未包含scrcpy，因此你依然需要正確安裝Scrcpy並確保好以直接通過scrcpy而不是path/to/scrcpy來執行。
-
+- ADB：Scrcpy本身依賴ADB提供連接，你可以：
+    - 安裝adb（platform-tools）到系統，並設定path，使adb可以通過`adb`而不是`./adb`或`path/to/adb`執行。
+    - 安裝/解壓縮adb到`啟動器目錄/adb`下，應用將優先使用存放在啟動器目錄下的adb
+- Scrcpy：啟動器默認並未包含scrcpy，你可以：
+    - 安裝Scrcpy到系統，並設定好path（這通常應該是自動的），使Scrcpy可以通過`scrcpy`而不是`./scrcpy`或`path/to/scrcpy`執行。
+    - 安裝/解壓縮scrcpy到`啟動器目錄/scrcpy`下，應用將優先使用存放在啟動器目錄下的scrcpy
 ## 精簡模式
-起動器包含一個精簡模式，你可以通過將窗口寬度減少來使其進入，但目前你需要足夠的寬度才能訪問設定，精簡模式下無法查看設定。因此建議在設定完成後再進入精簡模式。
+啟動器包含一個精簡模式，你可以通過將窗口寬度減少來使其進入，但目前你需要足夠的寬度才能訪問設定，精簡模式下無法查看設定。因此建議在設定完成後再進入精簡模式。
 
 ## release.sh 腳本是做什麼的？
 release.sh 是一個打包工具，因為種種原因我沒有使用nw-builder這類東西，而是自己寫了一個簡單的腳本。通過`./release.sh <平台>`來使用，你也可以一次指定多個平台，以空格分隔，像這樣`./release.sh linux64 win32 win64`，現在支援的平台有linux64 win32 win64。
