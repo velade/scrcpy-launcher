@@ -19,19 +19,27 @@ menu.append(new nw.MenuItem({
 }));
 Tray.menu = menu;
 
+const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
+const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
+
 let lasttimeGot = "";
 const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, "utf-8"));
 if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`);
 const user_settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
 objUpdate(settings, user_settings);
 fs.writeFileSync(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8");
-let viewers = {};
+const viewers = {};
+
+nw.App.on("open", (args) => {
+    win.show();
+})
+
 _(() => {
     _(document.body).ccm({})
     if (os.platform() == "win32") {
         _(".titlebar").addClass("btr");
     }
-    const checklist = ["adb", "scrcpy"];
+    const checklist = [adb, scrcpy];
     for (const command of checklist) {
         if (!checkCommandSync(command)) {
             alert(`關鍵組件缺失：${command.toUpperCase()}未安裝或未正確設定Path！`);
@@ -82,7 +90,7 @@ _(() => {
 
     _("#connect_by_ip").bind("click", () => {
         const ip = prompt("輸入 IP:端口(英文冒號)");
-        exec(`adb connect ${ip}`, (error, stdout, stderr) => {
+        exec(`${adb} connect ${ip}`, (error, stdout, stderr) => {
             console.log(stdout);
             updateDevicesList();
             const _item = _(`.control .connect[data-id="${ip}"]`);
@@ -135,7 +143,7 @@ function checkCommandSync(command) {
 
 function getDevicesFromAdb() {
     try {
-        const stdout = execSync("adb devices");
+        const stdout = execSync(`${adb} devices`);
         let adbStr = stdout.toString().trim();
         if (adbStr == lasttimeGot) {
             return false;
@@ -233,6 +241,7 @@ function updateDevicesList() {
 
 function view(th) {
     const deviceId = _(th).attr("data-id");
+    const alias = _(".info .alias .t1", _(th).parent(2)).text();
     if (_(th).hasClass("on")) {
         viewers[deviceId].kill();
         delete viewers[deviceId];
@@ -246,11 +255,11 @@ function view(th) {
         if (settings.args.uhid) args.push(`-K`);
         if (settings.args.stay_awake) args.push(`-w`);
         if (settings.args.other) args.push(...settings.args.other.split(" ").filter(Boolean));
-        const scrcpy = viewers[deviceId] = spawn("scrcpy", ["-s", deviceId, ...args]);
-        scrcpy.on("error", (msg) => {
+        const scrcpyWindow = viewers[deviceId] = spawn(scrcpy, ["-s", deviceId, `--window-title=${alias}`, ...args]);
+        scrcpyWindow.on("error", (msg) => {
             console.log(msg);
         })
-        scrcpy.on("close", () => {
+        scrcpyWindow.on("close", () => {
             _(th).removeClass("on");
         })
     }
@@ -275,7 +284,7 @@ function setAlias(th) {
 function disconnect(th) {
     const deviceId = _(th).attr("data-id");
     if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")) {
-        execSync(`adb disconnect ${deviceId}`);
+        execSync(`${adb} disconnect ${deviceId}`);
     }
 }
 
