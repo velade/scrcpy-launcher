@@ -89,7 +89,22 @@ body {
     position: relative;
     width: 100%;
     height: calc(100% - 32px);
-    background-color: rgba(245, 245, 245, 0.95);
+    background-image: url(tmp/wallpaper.webp);
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 1920px 1080px;
+    transition: 0ms !important;
+}
+
+.main::after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(245, 245, 245, 0.75);
+    z-index: 1;
 }
 
 .main .settings {
@@ -101,6 +116,7 @@ body {
     left: 0;
     width: 250px;
     height: calc(100% - 50px);
+    z-index: 2;
 }
 
 .main .list {
@@ -117,6 +133,7 @@ body {
     box-sizing: border-box;
     z-index: 10;
     transition: 250ms;
+    z-index: 2;
 }
 
 .main .list .fav {
@@ -194,6 +211,7 @@ textarea:focus {
     padding-right: 10px;
     padding-left: 0;
     transition: 250ms;
+    z-index: 2;
 }
 
 .main .devicetitle .title {

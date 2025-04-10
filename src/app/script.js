@@ -1,8 +1,10 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const ImageBlurProcessor = require('./ImageBlurProcessor.js');
 const { exec, execSync, spawn } = require('child_process');
 
+const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
 const Tray = new nw.Tray({ title: 'Tray', icon: 'app/tray.png' });
 const menu = new nw.Menu();
@@ -23,6 +25,8 @@ const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dir
 const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
 
 let lasttimeGot = "";
+let wallpaperPath;
+
 const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, "utf-8"));
 if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`);
 const user_settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
@@ -124,9 +128,16 @@ _(() => {
     })
 
     updateDevicesList();
+    updateWallpaper();
+    const currentScreen = getCurrentWindowScreen();
+    _(".main").css(`background-position: -${win.x}px -${win.y + 32}px;background-size: ${currentScreen.bounds.width}px ${currentScreen.bounds.height}px`);
     setInterval(() => {
         updateDevicesList();
     }, 1000)
+})
+
+win.on("move", (x, y) => {
+    _(".main").css(`background-position: -${x}px -${y + 32}px;`);
 })
 
 function checkCommandSync(command) {
@@ -306,4 +317,48 @@ function objUpdate(template, data, struct = "") {
 
 function isObject(obj) {
     return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
+}
+
+function updateWallpaper() {
+    getWallpaper().then(path => {
+        if (path != wallpaperPath) {
+            const currentScreen = getCurrentWindowScreen();
+            blurImage(path, 30, [currentScreen.bounds.width, currentScreen.bounds.height]).then((img) => {
+                img.toFile(rootDir + "/app/tmp/wallpaper.webp").then(() => {
+                    _(".main").css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
+                    setTimeout(() => {
+                        updateWallpaper();
+                    }, 100)
+                });
+            })
+            wallpaperPath = path;
+        } else {
+            setTimeout(() => {
+                updateWallpaper();
+            }, 100)
+        }
+    })
+}
+async function blurImage(inputPath, blurRadius, targetSize) {
+    const processor = new ImageBlurProcessor(inputPath, targetSize, 0.25, true);
+    return processor.blurImage(blurRadius);
+}
+function getCurrentWindowScreen() {
+    const winX = win.x;
+    const winY = win.y;
+
+    let currentScreen = null;
+
+    nw.Screen.screens.forEach(function (screen) {
+        const bounds = screen.bounds;
+        if (
+            winX >= bounds.x &&
+            winX < bounds.x + bounds.width &&
+            winY >= bounds.y &&
+            winY < bounds.y + bounds.height
+        ) {
+            currentScreen = screen;
+        }
+    });
+    return currentScreen;
 }
