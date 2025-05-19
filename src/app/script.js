@@ -8,6 +8,16 @@ const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
 const Tray = new nw.Tray({ title: 'Tray', icon: 'app/tray.png' });
 const menu = new nw.Menu();
+
+const execOptions = {
+    env: {
+        ...process.env, // 繼承當前 Node.js 進程的環境變數
+        LANG: 'en_US.UTF-8', // 主要的語言設定
+        LC_ALL: 'en_US.UTF-8', // 覆寫所有地區設定為英文
+        LANGUAGE: 'en_US:en' // 備選語言列表 (GNU gettext)
+    }
+};
+
 menu.append(new nw.MenuItem({ type: 'separator' }));
 menu.append(new nw.MenuItem({
     label: "顯示視窗", click: () => {
@@ -93,15 +103,41 @@ _(() => {
     })
 
     _("#connect_by_ip").bind("click", () => {
-        const ip = prompt("輸入 IP:端口(英文冒號)");
-        exec(`${adb} connect ${ip}`, (error, stdout, stderr) => {
+        const ipInput = prompt("輸入 IP:端口(英文冒號)");
+        const ip = ipInput.split(":")[0];
+        const connectPort = ipInput.split(":")[1];
+        if (!ip || !connectPort) {
+            alert("連接失敗！請確定輸入的格式正確！");
+            _("#connect_by_ip").trigger("click");
+            return;
+        }
+
+        exec(`${adb} connect ${ip}:${connectPort}`, execOptions, (error, stdout, stderr) => {
             console.log(stdout);
-            updateDevicesList();
-            const _item = _(`.control .connect[data-id="${ip}"]`);
-            if (_item.length === 1) {
-                _item.trigger("click");
+            if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
+                const pairPort = prompt("需要配對，請輸入配對用端口號");
+                const pairCode = prompt("請輸入配對碼");
+                exec(`${adb} pair ${ip}:${pairPort} ${pairCode}`, execOptions, (error, stdout, stderr) => {
+                    console.log(stdout);
+                    if (stdout.match(/^Successfully\spaired\sto\s.+/)) {
+                        exec(`${adb} connect ${ip}:${connectPort}`, execOptions, (error, stdout, stderr) => {
+                            console.log(stdout);
+                            if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
+                                alert("連接失敗！");
+                            } else {
+                                updateDevicesList();
+                                const _item = _(`.control .connect[data-id="${ip}"]`);
+                                _item.trigger("click");
+                            }
+                        })
+                    } else {
+                        alert("配對失敗！");
+                    }
+                })
             } else {
-                alert("連接失敗！");
+                updateDevicesList();
+                const _item = _(`.control .connect[data-id="${ip}"]`);
+                _item.trigger("click");
             }
         });
     })
@@ -130,14 +166,14 @@ _(() => {
     updateDevicesList();
     updateWallpaper();
     const currentScreen = getCurrentWindowScreen();
-    _(".main").css(`background-position: -${win.x}px -${win.y + 32}px;background-size: ${currentScreen.bounds.width}px ${currentScreen.bounds.height}px`);
+    _(document.body).css(`background-position: -${win.x}px -${win.y}px;background-size: ${currentScreen.bounds.width}px ${currentScreen.bounds.height}px`);
     setInterval(() => {
         updateDevicesList();
     }, 1000)
 })
 
 win.on("move", (x, y) => {
-    _(".main").css(`background-position: -${x}px -${y + 32}px;`);
+    _(document.body).css(`background-position: -${x}px -${y}px;`);
 })
 
 function checkCommandSync(command) {
@@ -325,7 +361,7 @@ function updateWallpaper() {
             const currentScreen = getCurrentWindowScreen();
             blurImage(path, 30, [currentScreen.bounds.width, currentScreen.bounds.height]).then((img) => {
                 img.toFile(rootDir + "/app/tmp/wallpaper.webp").then(() => {
-                    _(".main").css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
+                    _(document.body).css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
                     setTimeout(() => {
                         updateWallpaper();
                     }, 100)

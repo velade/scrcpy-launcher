@@ -37,6 +37,24 @@ body {
     user-select: none;
 }
 
+body {
+    background-image: url(tmp/wallpaper.webp);
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 1920px 1080px;
+}
+
+body::after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(245, 245, 245, 0.75);
+    z-index: 1;
+}
+
 .titlebar {
     display: block;
     position: relative;
@@ -44,10 +62,11 @@ body {
     height: 32px;
     line-height: 32px;
     text-align: center;
-    background-color: #077063;
-    color: whitesmoke;
+    background-color: transparent;
+    color: black;
     font-weight: bold;
     -webkit-app-region: drag;
+    z-index: 2;
 }
 
 .titlebar .close,
@@ -62,7 +81,7 @@ body {
     left: 0;
     -webkit-app-region: no-drag;
     transition: 250ms;
-    color: whitesmoke;
+    color: black;
 }
 
 .titlebar .hotkeys {
@@ -89,22 +108,7 @@ body {
     position: relative;
     width: 100%;
     height: calc(100% - 32px);
-    background-image: url(tmp/wallpaper.webp);
-    background-repeat: no-repeat;
-    background-position: 0 0;
-    background-size: 1920px 1080px;
     transition: 0ms !important;
-}
-
-.main::after {
-    content: " ";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(245, 245, 245, 0.75);
-    z-index: 1;
 }
 
 .main .settings {
