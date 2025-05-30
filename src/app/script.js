@@ -1,13 +1,35 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const Bonjour = require('bonjour-service').default;
+const bonjourInstance = new Bonjour();
 const ImageBlurProcessor = require('./ImageBlurProcessor.js');
 const { exec, execSync, spawn } = require('child_process');
+const { stderr } = require('process');
 
 const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
-const Tray = new nw.Tray({ title: 'Tray', icon: 'app/tray.png' });
+const Tray = new nw.Tray({ title: 'Scrcpy啟動器', icon: 'app/tray.png' });
 const menu = new nw.Menu();
+menu.append(new nw.MenuItem({
+    label: "分隔線",
+    type: 'separator'
+}));
+menu.append(new nw.MenuItem({
+    id: 998,
+    label: "顯示視窗",
+    click: () => {
+        win.show();
+    }
+}));
+menu.append(new nw.MenuItem({
+    id: 999,
+    label: "退出",
+    click: () => {
+        nw.App.quit();
+    }
+}));
+Tray.menu = menu;
 
 const execOptions = {
     env: {
@@ -15,21 +37,9 @@ const execOptions = {
         LANG: 'en_US.UTF-8', // 主要的語言設定
         LC_ALL: 'en_US.UTF-8', // 覆寫所有地區設定為英文
         LANGUAGE: 'en_US:en' // 備選語言列表 (GNU gettext)
-    }
+    },
+    encoding: 'utf-8'
 };
-
-menu.append(new nw.MenuItem({ type: 'separator' }));
-menu.append(new nw.MenuItem({
-    label: "顯示視窗", click: () => {
-        win.show();
-    }
-}));
-menu.append(new nw.MenuItem({
-    label: "退出", click: () => {
-        nw.App.quit();
-    }
-}));
-Tray.menu = menu;
 
 const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
 const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
@@ -44,7 +54,7 @@ objUpdate(settings, user_settings);
 fs.writeFileSync(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8");
 const viewers = {};
 
-nw.App.on("open", (args) => {
+nw.App.on("open", () => {
     win.show();
 })
 
@@ -82,11 +92,11 @@ _(() => {
         fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
     })
 
-    _(".close").bind("click", (e) => {
+    _(".close").bind("click", () => {
         win.hide();
     })
 
-    _(".hotkeys").bind("click", (e) => {
+    _(".hotkeys").bind("click", () => {
         if (_(".shortcuts").hasClass("show")) {
             _(".shortcuts").removeClass("show");
         } else {
@@ -106,40 +116,7 @@ _(() => {
         const ipInput = prompt("輸入 IP:端口(英文冒號)");
         const ip = ipInput.split(":")[0];
         const connectPort = ipInput.split(":")[1];
-        if (!ip || !connectPort) {
-            alert("連接失敗！請確定輸入的格式正確！");
-            _("#connect_by_ip").trigger("click");
-            return;
-        }
-
-        exec(`${adb} connect ${ip}:${connectPort}`, execOptions, (error, stdout, stderr) => {
-            console.log(stdout);
-            if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
-                const pairPort = prompt("需要配對，請輸入配對用端口號");
-                const pairCode = prompt("請輸入配對碼");
-                exec(`${adb} pair ${ip}:${pairPort} ${pairCode}`, execOptions, (error, stdout, stderr) => {
-                    console.log(stdout);
-                    if (stdout.match(/^Successfully\spaired\sto\s.+/)) {
-                        exec(`${adb} connect ${ip}:${connectPort}`, execOptions, (error, stdout, stderr) => {
-                            console.log(stdout);
-                            if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
-                                alert("連接失敗！");
-                            } else {
-                                updateDevicesList();
-                                const _item = _(`.control .connect[data-id="${ip}"]`);
-                                _item.trigger("click");
-                            }
-                        })
-                    } else {
-                        alert("配對失敗！");
-                    }
-                })
-            } else {
-                updateDevicesList();
-                const _item = _(`.control .connect[data-id="${ip}"]`);
-                _item.trigger("click");
-            }
-        });
+        connect(ip, connectPort);
     })
 
     const keyMap = { "AltLeft": "lalt", "AltRight": "ralt", "ControlLeft": "lctrl", "ControlRight": "rctrl", "MetaLeft": "lsuper", "MetaRight": "rsuper" };
@@ -163,6 +140,7 @@ _(() => {
         _(e.target).trigger("change")
     })
 
+    watchDeviceFromLocalNetwork();
     updateDevicesList();
     updateWallpaper();
     const currentScreen = getCurrentWindowScreen();
@@ -175,6 +153,14 @@ _(() => {
 win.on("move", (x, y) => {
     _(document.body).css(`background-position: -${x}px -${y}px;`);
 })
+
+// 確保在應用退出時清理
+window.addEventListener('beforeunload', () => {
+    console.log('應用即將退出，停止所有 mDNS 瀏覽器...');
+    browsers.forEach(browser => browser.stop());
+    bonjourInstance.destroy();
+    Tray.remove();
+});
 
 function checkCommandSync(command) {
     try {
@@ -208,23 +194,75 @@ function getDevicesFromAdb() {
     }
 }
 
+function watchDeviceFromLocalNetwork() {
+    const serviceTypesToFind = [
+        { type: 'adb-tls-connect', protocol: 'tcp', description: 'ADB Connect Service' }  // 用於連接
+    ];
+
+    const browsers = [];
+
+    serviceTypesToFind.forEach(serviceIdentifier => {
+        const browser = bonjourInstance.find({ type: serviceIdentifier.type, protocol: serviceIdentifier.protocol });
+        const mainListOther = _(document.querySelector(".main .list .other"));
+
+        browser.on('up', (service) => {
+            // 提取連接所需信息
+            // 通常，你會從 service.addresses 中獲取 IPv4 地址
+            const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
+
+            if (ipv4Address && service.port) {
+                const alias = settings.alias[service.name] || service.name;
+                mainListOther.append(`<div class="device" id="${ipv4Address}:${service.port}">
+                <div class="info">
+                    <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="未連接">未連接</span></div>
+                    <div class="realname" title="${ipv4Address}:${service.port}">${ipv4Address}:${service.port}</div>
+                </div>
+                <div class="control">
+                    <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="連接">
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#icon-connect"></use>
+                        </svg>
+                    </div>
+                    <div class="addAlias" data-id="${ipv4Address}:${service.port}" onclick="setAlias(this)" title="編輯別名">
+                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#icon-edit"></use>
+                        </svg>
+                    </div>
+                </div>
+            </div>`);
+                hiddenConnectedFromOthers();
+            }
+        });
+
+        browser.on('down', (service) => {
+            const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
+            _(`.device[id="${ipv4Address}:${service.port}"]`).remove();
+        });
+
+        browsers.push(browser);
+    });
+}
+
 function updateDevicesList() {
     const devices = getDevicesFromAdb();
     if (devices === false) return;
     const mainListFav = _(document.querySelector(".main .list .fav"));
-    const mainListOther = _(document.querySelector(".main .list .other"));
+    const mainListConnected = _(document.querySelector(".main .list .connected"));
     const statusStr = { device: "已連接", offline: "離線", unauthorized: "未授權", "no permissions": "沒有權限" }
     const statusDesStr = { device: "設備已連接並給於授權，你可以正常查看這個設備", offline: "設備曾連接並記憶，但此刻處於離線狀態，不可查看", unauthorized: "設備等待手機端授權，請在手機上操作", "no permissions": "你無權連接這個設備" }
     mainListFav.empty();
-    mainListOther.empty();
+    mainListConnected.empty();
     // 移除所有菜单项
-    for (let i = menu.items.length - 4; i >= 0; i--) {
-        menu.removeAt(i);
+    for (const itemIndex in menu.items) {
+        const item = menu.items[itemIndex];
+        if (item.label != "顯示視窗" && item.label != "退出" && item.type != "separator") {
+            menu.remove(item);
+        }
     }
     for (const device of devices) {
         const alias = settings.alias[device.id] || device.id;
         if (alias != device.id) {
-            mainListFav.append(`<div class="device">
+            mainListFav.append(`<div class="device hidden">
                 <div class="info">
                     <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                     <div class="realname" title="${device.id}">${device.id}</div>
@@ -240,7 +278,7 @@ function updateDevicesList() {
                             <use href="#icon-edit"></use>
                         </svg>
                     </div>
-                    <div class="disconnect" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                    <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-disconnect"></use>
                         </svg>
@@ -248,7 +286,7 @@ function updateDevicesList() {
                 </div>
             </div>`);
         } else {
-            mainListOther.append(`<div class="device">
+            mainListConnected.append(`<div class="device hidden">
                 <div class="info">
                         <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                         <div class="realname" title="${device.id}">${device.id}</div>
@@ -264,7 +302,7 @@ function updateDevicesList() {
                         <use href="#icon-edit"></use>
                         </svg>
                         </div>
-                        <div class="disconnect" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                        <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                         <use href="#icon-disconnect"></use>
                         </svg>
@@ -277,13 +315,25 @@ function updateDevicesList() {
                 _(`.control .connect[data-id="${device.id}"]`).trigger("click");
             }
         }), 0);
+
+        // 已連接的設備從探測列表隱藏
+        hiddenConnectedFromOthers();
     }
+    _(".fav .device, .connected .device").removeClass("hidden");
     Tray.menu = menu;
     if (_(".device", mainListFav).length == 0) {
         mainListFav.css("display: none");
     } else {
         mainListFav.css("display: block");
     }
+}
+
+function hiddenConnectedFromOthers() {
+    _(`.device.hidden`).removeClass("hidden");
+    _(".connected .device, .fav .device").each((index, item) => {
+        const itemID = _(".info .realname", item).text();
+        _(`.device[id="${itemID}"]`).addClass("hidden");
+    })
 }
 
 function view(th) {
@@ -332,6 +382,8 @@ function disconnect(th) {
     const deviceId = _(th).attr("data-id");
     if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")) {
         execSync(`${adb} disconnect ${deviceId}`);
+        updateDevicesList();
+        hiddenConnectedFromOthers();
     }
 }
 
@@ -397,4 +449,31 @@ function getCurrentWindowScreen() {
         }
     });
     return currentScreen;
+}
+
+function connect(ip, port) {
+    const stdOut = execSync(`${adb} connect ${ip}:${port}`, execOptions);
+    if (stdOut.trim() === `failed to connect to ${ip}:${port}`) {
+        const pairPort = prompt("需要配對，請輸入配對用端口號");
+        const pairCode = prompt("請輸入配對碼");
+        exec(`${adb} pair ${ip}:${pairPort} ${pairCode}`, execOptions, (error, stdout) => {
+            if (stdout.match(/^Successfully\spaired\sto\s.+/)) {
+                exec(`${adb} connect ${ip}:${port}`, execOptions, (error, stdout) => {
+                    if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
+                        alert("連接失敗！");
+                    } else {
+                        updateDevicesList();
+                        const _item = _(`.control .connect[data-id="${ip}"]`);
+                        _item.trigger("click");
+                    }
+                })
+            } else {
+                alert("配對失敗！");
+            }
+        })
+    } else {
+        updateDevicesList();
+        const _item = _(`.control .connect[data-id="${ip}"]`);
+        _item.trigger("click");
+    }
 }

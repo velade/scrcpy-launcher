@@ -246,9 +246,17 @@ textarea:focus {
     border-radius: 15px;
     box-sizing: border-box;
     padding: 5px;
-    box-sizing: border-box;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
     margin-bottom: 10px;
+    transition: 250ms;
+    overflow: hidden;
+}
+
+.main .list .device.hidden {
+    padding: 0;
+    height: 0;
+    margin: 0;
+    pointer-events: none;
 }
 
 .main .list .device .info {
@@ -310,21 +318,24 @@ textarea:focus {
     margin-right: 5px;
 }
 
-.main .list .device .control .connect {
+.main .list .device .control .connect,
+.main .list .device .control .disconnect {
     border: 1px solid lightgray;
     color: lightgray;
     pointer-events: none;
 }
 
-.main .list .device .control .connect.Sdevice {
+.main .list .device .control .connect.Sdevice,
+.main .list .device .control .connect.Swait {
     border: 1px solid #077063;
     color: #077063;
     pointer-events: auto;
 }
 
-.main .list .device .control .disconnect {
+.main .list .device .control .disconnect.Sdevice {
     border: 1px solid brown;
     color: brown;
+    pointer-events: auto;
 }
 
 .main .list .device .control>div:last-child {

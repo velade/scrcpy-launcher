@@ -15,6 +15,7 @@ for platform in "$@"; do
         echo "複製項目檔案到臨時目錄..."
         cd .packing/linux64
         cp -rf ../../src/app app
+        cp -rf ../../src/node_modules node_modules
         cp -f ../../src/package.json package.json
         cp -f ../../src/Scrcpy_logo.png Scrcpy_logo.png
         cp -f ../../src/user_config.json.org user_config.json.org
@@ -42,6 +43,7 @@ for platform in "$@"; do
         echo "複製項目檔案到臨時目錄..."
         cd .packing/win32
         cp -rf ../../src/app app
+        cp -rf ../../src/node_modules node_modules
         cp -f ../../src/package.json package.json
         cp -f ../../src/Scrcpy_logo.png Scrcpy_logo.png
         cp -f ../../src/user_config.json.org user_config.json.org
@@ -71,6 +73,7 @@ for platform in "$@"; do
         echo "複製項目檔案到臨時目錄..."
         cd .packing/win64
         cp -rf ../../src/app app
+        cp -rf ../../src/node_modules node_modules
         cp -f ../../src/package.json package.json
         cp -f ../../src/Scrcpy_logo.png Scrcpy_logo.png
         cp -f ../../src/user_config.json.org user_config.json.org
