@@ -250,6 +250,7 @@ textarea:focus {
     margin-bottom: 10px;
     transition: 250ms;
     overflow: hidden;
+    background-color: #fcfcfc;
 }
 
 .main .list .device.hidden {
@@ -259,9 +260,50 @@ textarea:focus {
     pointer-events: none;
 }
 
+.main .list .device .brand {
+    display: block;
+    position: relative;
+    width: 70px;
+    height: 70px;
+    margin-right: 5px;
+    border-radius: 10px 0 0 10px;
+    overflow: hidden;
+    background-color: #fcfcfc;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-left: -5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.main .list .device .brand>img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.main .list .device .brand>.model {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    line-height: 15px;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: whitesmoke;
+}
+
 .main .list .device .info {
     display: flex;
-    width: calc(100% - 125px);
+    width: calc(100% - 195px);
     height: 100%;
     flex-wrap: wrap;
     align-items: center;

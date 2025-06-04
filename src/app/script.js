@@ -186,7 +186,14 @@ function getDevicesFromAdb() {
         let re = [];
         for (const device of devices) {
             console.log(`已獲取設備：`, device);
-            re.push({ id: device[1], status: device[2] });
+            const brand = execSync(`${adb} -s ${device[1]} shell getprop ro.product.brand`, execOptions);
+            const model = execSync(`${adb} -s ${device[1]} shell getprop ro.product.model`, execOptions);
+            let deviceName = execSync(`${adb} -s ${device[1]} shell settings get global device_name`, execOptions);
+            if (!deviceName || deviceName == "null") {
+                deviceName = execSync(`${adb} -s ${device[1]} shell settings get system bluetooth_name`, execOptions);
+                if (!deviceName || deviceName == "null") deviceName = null;
+            }
+            re.push({ id: device[1], status: device[2], brand: brand.toLowerCase(), model: model, deviceName: deviceName });
         }
         return re;
     } catch (error) {
@@ -260,9 +267,13 @@ function updateDevicesList() {
         }
     }
     for (const device of devices) {
-        const alias = settings.alias[device.id] || device.id;
-        if (alias != device.id) {
+        const alias = settings.alias[device.id] || device.deviceName || device.model || device.id;
+        if (settings.alias[device.id]) {
             mainListFav.append(`<div class="device hidden">
+                <div class="brand">
+                    <img src="brands/${device.brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
+                    <div class="model">${device.model}</div>
+                </div>
                 <div class="info">
                     <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                     <div class="realname" title="${device.id}">${device.id}</div>
@@ -287,6 +298,10 @@ function updateDevicesList() {
             </div>`);
         } else {
             mainListConnected.append(`<div class="device hidden">
+                <div class="brand">
+                    <img src="brands/${device.brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
+                    <div class="model">${device.model}</div>
+                </div>
                 <div class="info">
                         <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
                         <div class="realname" title="${device.id}">${device.id}</div>

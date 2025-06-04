@@ -30,7 +30,7 @@ for platform in "$@"; do
         mv nw Scrcpy啟動器
 
         echo "開始打包檔案..."
-        zip_file_linux64="Scrcpy_Launcher_Linux64_v${current_version}.tar.gz"
+        zip_file_linux64="Scrcpy_Launcher_Linux64.tar.gz"
         tar -czvf "../../dist/${current_version}/$zip_file_linux64" .
         cd ../../
         rm -rf .packing/linux64
@@ -60,7 +60,7 @@ for platform in "$@"; do
         mv nw.exe Scrcpy啟動器.exe
 
         echo "開始打包檔案..."
-        zip_file_win32="Scrcpy_Launcher_Win32_v${current_version}.zip"
+        zip_file_win32="Scrcpy_Launcher_Win32.zip"
         zip -r "../../dist/${current_version}/$zip_file_win32" .
         cd ../../
         rm -rf .packing/win32
@@ -90,7 +90,7 @@ for platform in "$@"; do
         mv nw.exe Scrcpy啟動器.exe
 
         echo "開始打包檔案..."
-        zip_file_win64="Scrcpy_Launcher_Win64_v${current_version}.zip"
+        zip_file_win64="Scrcpy_Launcher_Win64.zip"
         zip -r "../../dist/${current_version}/$zip_file_win64" .
         cd ../../
         rm -rf .packing/win64
