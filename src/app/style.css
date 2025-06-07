@@ -118,7 +118,7 @@ body::after {
     padding: 20px;
     bottom: 0;
     left: 0;
-    width: 250px;
+    width: 350px;
     height: calc(100% - 50px);
     z-index: 2;
 }
@@ -126,7 +126,7 @@ body::after {
 .main .list {
     display: block;
     position: absolute;
-    width: calc(100% - 250px);
+    width: calc(100% - 350px);
     height: calc(100% - 50px);
     bottom: 0;
     right: 0;
@@ -147,36 +147,139 @@ body::after {
     margin-bottom: 10px;
 }
 
+.main .settings .settings_group_list {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    width: 30px;
+    height: fit-content;
+    max-height: calc(100% - 30px);
+    overflow: auto;
+    margin-left: -20px;
+}
+
+.main .settings .settings_group_list .settings_group_title {
+    display: block;
+    width: 30px;
+    line-height: 30px;
+    height: fit-content;
+    text-align: center;
+    writing-mode: vertical-rl;
+    padding: 10px 0;
+    transition: color 250ms;
+    color: black;
+}
+
+.main .settings .settings_group_list .settings_group_title.selected {
+    color: #077063;
+}
+
+.main .settings .settings_group_list .settings_group_separator {
+    display: block;
+    width: 15px;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.main .settings .settings_group {
+    display: block;
+    position: absolute;
+    top: calc(62px + 1em);
+    right: 20px;
+    left: 35px;
+    bottom: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms;
+    overflow: auto;
+}
+
+.main .settings .settings_group.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .main .settings .setting {
     display: flex;
+    position: relative;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    min-height: 40px;
-    font-size: 0;
+    height: 40px;
 }
 
 .main .settings .setting>span {
-    display: inline-block;
+    display: block;
     height: 30px;
     font-size: 16px;
+}
+
+.main .settings .setting .selection {
+    display: block;
+    position: absolute;
+    top: 5px;
+    right: 0px;
+    width: max-content;
+    min-width: 130px;
+    height: 30px;
+    border-radius: 15px;
+    background-color: #fcfcfc;
+    box-sizing: border-box;
+    padding: 0 7.5px;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: height 250ms;
+}
+
+.main .settings .setting .selection>.display {
+    display: block;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.main .settings .setting .selection>span {
+    display: block;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
 }
 
 input[type=text] {
     margin: 0;
     box-sizing: border-box;
     border: none;
-    width: 100px;
+    width: 130px;
     height: 30px;
     line-height: 30px;
     font-size: 16px;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    background-color: #fcfcfc;
 }
 
 input[type=text]:focus {
+    outline: none;
+    border: none;
+}
+
+input.holder {
+    display: block;
+    padding: 0;
+    margin: 0;
+    width: 0;
+    height: 0;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+}
+
+input.holder:focus {
     outline: none;
     border: none;
 }
@@ -206,7 +309,7 @@ textarea:focus {
     flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
-    width: calc(100% - 250px);
+    width: calc(100% - 350px);
     height: 50px;
     line-height: 50px;
     right: 0;
@@ -391,6 +494,16 @@ textarea:focus {
 .main .list .device .control .connect.on {
     background-color: #077063;
     color: whitesmoke;
+}
+
+#mouse-bind-help {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-image: url(help-contents-symbolic.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .shortcuts {

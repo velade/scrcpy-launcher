@@ -11,6 +11,8 @@ const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
 const Tray = new nw.Tray({ title: 'Scrcpy啟動器', icon: 'app/tray.png' });
 const menu = new nw.Menu();
+const userHome = os.homedir();
+const configDir = `${userHome}/.config/scrcpy_launcher`;
 menu.append(new nw.MenuItem({
     label: "分隔線",
     type: 'separator'
@@ -47,11 +49,195 @@ const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${pa
 let lasttimeGot = "";
 let wallpaperPath;
 
-const settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, "utf-8"));
-if (!fs.existsSync(`${path.dirname(process.execPath)}/user_config.json`)) fs.copyFileSync(`${path.dirname(process.execPath)}/user_config.json.org`, `${path.dirname(process.execPath)}/user_config.json`);
-const user_settings = JSON.parse(fs.readFileSync(`${path.dirname(process.execPath)}/user_config.json`, "utf-8"));
-objUpdate(settings, user_settings);
-fs.writeFileSync(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8");
+let settings = {
+    args: {
+        //控制鍵
+        "shortcut-mod": {
+            enabled: true,
+            value: "lalt"
+        },
+        // 音訊
+        "no-audio": {
+            enabled: false,
+            value: null
+        },
+        "audio-source": {
+            enabled: false,
+            value: "output"
+        },
+        "audio-codec": {
+            enabled: false,
+            value: "opus"
+        },
+        "audio-bit-rate": {
+            enabled: false,
+            value: "128K"
+        },
+        "audio-buffer": {
+            enabled: false,
+            value: 50
+        },
+        "audio-output-buffer": {
+            enabled: false,
+            value: 5
+        },
+        // 視訊
+        "no-video": {
+            enabled: false,
+            value: null
+        },
+        "video-source": {
+            enabled: false,
+            value: "display"
+        },
+        "max-size": {
+            enabled: false,
+            value: 1024
+        },
+        "video-bit-rate": {
+            enabled: false,
+            value: "8M"
+        },
+        "max-fps": {
+            enabled: false,
+            value: 60
+        },
+        "video-codec": {
+            enabled: true,
+            value: "av1"
+        },
+        "display-orientation": {
+            enabled: false,
+            value: 0
+        },
+        "record-orientation": {
+            enabled: false,
+            value: 0
+        },
+        "angle": {
+            enabled: false,
+            value: 0
+        },
+        "crop": {
+            enabled: false,
+            value: ""
+        },
+        "display-id": {
+            enabled: false,
+            value: 1
+        },
+        "video-buffer": {
+            enabled: false,
+            value: 50
+        },
+        "v4l2-sink": {
+            enabled: false,
+            value: ""
+        },
+        "v4l2-buffer": {
+            enabled: false,
+            value: 300
+        },
+        // 窗口
+        "no-control": {
+            enabled: false,
+            value: null
+        },
+        "no-window": {
+            enabled: false,
+            value: null
+        },
+        "window-width": {
+            enabled: false,
+            value: 1080
+        },
+        "window-height": {
+            enabled: false,
+            value: 2424
+        },
+        "window-borderless": {
+            enabled: false,
+            value: null
+        },
+        "always-on-top": {
+            enabled: false,
+            value: null
+        },
+        "fullscreen": {
+            enabled: false,
+            value: null
+        },
+        // 設備
+        "stay-awake": {
+            enabled: true,
+            value: null
+        },
+        "screen-off-timeout": {
+            enabled: false,
+            value: "300"
+        },
+        "turn-screen-off": {
+            enabled: true,
+            value: null
+        },
+        "show-touches": {
+            enabled: false,
+            value: null
+        },
+        "disable-screensaver": {
+            enabled: true,
+            value: null
+        },
+        "power-off-on-close": {
+            enabled: false,
+            value: null
+        },
+        "no-power-on": {
+            enabled: false,
+            value: null
+        },
+        // 輸入
+        "gamepad": {
+            enabled: false,
+            value: "disabled"
+        },
+        "keyboard": {
+            enabled: true,
+            value: "uhid"
+        },
+        "mouse": {
+            enabled: false,
+            value: "sdk"
+        },
+        "no-mouse-hover": {
+            enabled: false,
+            value: null
+        },
+        "mouse-bind": {
+            enabled: false,
+            value: ""
+        }
+    },
+    system: {
+        "min-start": {
+            enabled: false,
+            value: null
+        },
+        "true-close": {
+            enabled: false,
+            value: null
+        }
+    },
+    alias: {}
+};
+if (fs.existsSync(`${configDir}/user_config.json`)) {
+    settings = JSON.parse(fs.readFileSync(`${configDir}/user_config.json`, "utf-8"));
+} else {
+    if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+    }
+    fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+}
 const viewers = {};
 
 nw.App.on("open", () => {
@@ -71,29 +257,90 @@ _(() => {
         }
     }
 
-    if (settings.system.min_start) win.hide();
+    if (settings.system["min-start"].enabled) win.hide();
 
-    _("#mod_key")[0].value = settings.args.mod_key;
-    _("#no_audio")[0].checked = settings.args.no_audio;
-    _("#no_control")[0].checked = settings.args.no_control;
-    _("#stay_awake")[0].checked = settings.args.stay_awake;
-    _("#turn_screen_off")[0].checked = settings.args.turn_screen_off;
-    _("#uhid")[0].checked = settings.args.uhid;
-    _("#other")[0].value = settings.args.other;
-    _("#min_start")[0].checked = settings.system.min_start;
+    for (const key in settings.args) {
+        const setting = settings.args[key];
+        const settingEnable = _(`[type="checkbox"][data-group="args"][data-key="${key}"]`);
+        const settingValue = _(`[type="text"][data-group="args"][data-key="${key}"]`);
+        const settingSelection = _(`[type="text"][data-group="args"][data-key="${key}"]+.selection`);
+        if (settingEnable.length > 0) {
+            settingEnable.each((index, item) => {
+                item.checked = setting.enabled;
+            })
+        }
+        if (settingValue.length > 0) {
+            settingValue.each((index, item) => {
+                item.value = setting.value;
+            })
+        }
+        if (settingSelection.length > 0) {
+            settingSelection.each((index, item) => {
+                const display = _(".display", item);
+                const valueText = _(`span[value="${settingValue[index].value}"]`, item).text();
+                display.text(valueText);
+            })
+        }
+    }
 
-    _(`.settings .setting input[type="text"]`).bind("change", (e) => {
-        settings[_(e.target).attr("data-group")][e.target.id] = _(e.target).val();
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
-    })
+    for (const key in settings.system) {
+        const setting = settings.system[key];
+        const settingEnable = _(`[type="checkbox"][data-group="system"][data-key="${key}"]`);
+        const settingValue = _(`[type="text"][data-group="system"][data-key="${key}"]`);
+        const settingSelection = _(`[type="text"][data-group="system"][data-key="${key}"]+.selection`);
+        if (settingEnable.length > 0) {
+            settingEnable.each((index, item) => {
+                item.checked = setting.enabled;
+            })
+        }
+        if (settingValue.length > 0) {
+            settingValue.each((index, item) => {
+                item.value = setting.value;
+            })
+        }
+        if (settingSelection.length > 0) {
+            settingSelection.each((index, item) => {
+                const display = _(".display", item);
+                const valueText = _(`span[value="${settingValue[index].value}"]`, item).text();
+                display.text(valueText);
+            })
+        }
+    }
 
     _(`.settings .setting input[type="checkbox"]`).bind("change", (e) => {
-        settings[_(e.target).attr("data-group")][e.target.id] = _(e.target)[0].checked;
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+        const group = _(e.target).attr("data-group");
+        const key = _(e.target).attr("data-key");
+        const val = _(e.target)[0].checked;
+        settings[group][key].enabled = val;
+        fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+        _(`[type="checkbox"][data-group="${group}"][data-key="${key}"]`).each((i, item) => {
+            item.checked = val;
+        })
     })
 
+    _(`.settings .setting input[type="text"]`).bind("change", (e) => {
+        const group = _(e.target).attr("data-group");
+        const key = _(e.target).attr("data-key");
+        const val = _(e.target).val();
+        settings[group][key].value = val;
+        fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+        _(`[type="text"][data-group="${group}"][data-key="${key}"]`).each((i, item) => {
+            item.value = val;
+        })
+        _(`[type="text"][data-group="${group}"][data-key="${key}"]+.selection`).each((i, item) => {
+            const display = _(".display", item);
+            const valueText = _(`span[value="${val}"]`, item).text();
+            display.text(valueText);
+        })
+    })
+
+
     _(".close").bind("click", () => {
-        win.hide();
+        if (settings.system["true-close"].enabled) {
+            win.close();
+        } else {
+            win.hide();
+        }
     })
 
     _(".hotkeys").bind("click", () => {
@@ -138,6 +385,38 @@ _(() => {
         downKeyCount = Math.max(downKeyCount, 0);
         e.target.value = modkeys.join(" + ");
         _(e.target).trigger("change")
+    })
+
+    _(".selection .display").bind("click", (e) => {
+        const selection = _(e.target).parent();
+        const optionsNum = _("span", selection).length + 1;
+        selection.css(`height:${optionsNum * 30}px;z-index:999999;`);
+        _(".holder", selection).trigger("focus");
+    })
+    _(".selection .holder").bind("blur", (e) => {
+        const selection = _(e.target).parent();
+        selection.css(`height:30px;z-index:auto;`);
+    })
+
+    _(".selection>span").bind("mousedown", (e) => {
+        const selection = _(e.target).parent();
+        _(`input[type="text"]`, selection.parent()).val(_(e.target).attr("value"));
+        _(`.display`, selection).text(_(e.target).text());
+        _(`input[type="text"]`, selection.parent()).trigger("change");
+    })
+
+    _(".settings_group_list .settings_group_title").bind("click", (e) => {
+        const currentIndex = _(".settings_group_title.selected").attr("data-index");
+        const newIndex = _(e.target).attr("data-index");
+        if (currentIndex == newIndex) return;
+        _(".settings_group_title.selected").removeClass("selected");
+        _(".settings_group.show").removeClass("show");
+        _(e.target).addClass("selected");
+        _(`.settings_group[data-index="${newIndex}"]`).addClass("show");
+    })
+
+    _("#mouse-bind-help").bind("click", () => {
+        nw.Shell.openExternal("https://github.com/Genymobile/scrcpy/blob/master/doc/mouse.md#mouse-bindings");
     })
 
     watchDeviceFromLocalNetwork();
@@ -360,13 +639,16 @@ function view(th) {
     } else {
         _(th).addClass("on");
         let args = [];
-        if (settings.args.mod_key) args.push(`--shortcut-mod=${settings.args.mod_key}`);
-        if (settings.args.no_audio) args.push(`--no-audio`);
-        if (settings.args.no_control) args.push(`-n`);
-        if (settings.args.turn_screen_off) args.push(`-S`);
-        if (settings.args.uhid) args.push(`-K`);
-        if (settings.args.stay_awake) args.push(`-w`);
-        if (settings.args.other) args.push(...settings.args.other.split(" ").filter(Boolean));
+        for (const key in settings.args) {
+            const prop = settings.args[key];
+            if (prop.enabled || key === "shortcut-mod") {
+                if (prop.value === null) {
+                    args.push(`--${key}`);
+                } else {
+                    args.push(`--${key}=${prop.value}`);
+                }
+            }
+        }
         const scrcpyWindow = viewers[deviceId] = spawn(scrcpy, ["-s", deviceId, `--window-title=${alias}`, ...args]);
         scrcpyWindow.on("error", (msg) => {
             console.log(msg);
@@ -382,12 +664,12 @@ function setAlias(th) {
     let alias = prompt("輸入別名", _(".t1", _(th).parent(2)).text());
     if (alias === "") {
         delete settings.alias[deviceId];
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+        fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         lasttimeGot = "";
         updateDevicesList();
     } else if (alias !== null) {
         settings.alias[deviceId] = alias;
-        fs.writeFile(`${path.dirname(process.execPath)}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+        fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         lasttimeGot = "";
         updateDevicesList();
     }
@@ -400,22 +682,6 @@ function disconnect(th) {
         updateDevicesList();
         hiddenConnectedFromOthers();
     }
-}
-
-function objUpdate(template, data, struct = "") {
-    for (const [key, value] of Object.entries(eval(`template${struct}`))) {
-        if (key == "alias") continue;
-        if (isObject(value) || Array.isArray(value)) {
-            objUpdate(template, data, struct + "." + key);
-        } else {
-            try {
-                eval(`template${struct}.${key} = data${struct}.${key}`);
-            } catch (error) {
-
-            }
-        }
-    }
-    template.alias = _.deepCopy(data.alias);
 }
 
 function isObject(obj) {
