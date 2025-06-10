@@ -27,7 +27,7 @@ for platform in "$@"; do
         fi
         tar -xzf nwjs-v0.64.1-linux-x64.tar.gz -C ../.packing/linux64 --strip-components=1 -v
         cd ../.packing/linux64
-        mv nw Scrcpy啟動器
+        mv nw ScrcpyLauncher
 
         echo "開始打包檔案..."
         zip_file_linux64="Scrcpy_Launcher_Linux64.tar.gz"
@@ -57,7 +57,7 @@ for platform in "$@"; do
         cd ../.packing/win32
         mv nwjs-v0.64.1-win-ia32/* ./
         rm -rf nwjs-v0.64.1-win-ia32
-        mv nw.exe Scrcpy啟動器.exe
+        mv nw.exe ScrcpyLauncher.exe
 
         echo "開始打包檔案..."
         zip_file_win32="Scrcpy_Launcher_Win32.zip"
@@ -87,7 +87,7 @@ for platform in "$@"; do
         cd ../.packing/win64
         mv nwjs-v0.64.1-win-x64/* ./
         rm -rf nwjs-v0.64.1-win-x64
-        mv nw.exe Scrcpy啟動器.exe
+        mv nw.exe ScrcpyLauncher.exe
 
         echo "開始打包檔案..."
         zip_file_win64="Scrcpy_Launcher_Win64.zip"
