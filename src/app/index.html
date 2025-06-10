@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scrcpy啟動器</title>
+    <title>@t-title;</title>
     <script src="/app/velfun4.min.js"></script>
     <script src="/app/wallpaper.js"></script>
     <script src="/app/script.js"></script>
@@ -63,12 +63,12 @@
             <path d="m5.5001 5.5001v1c0 0.276 0.1 0.538 0.281 0.719l0.781 0.781-0.78 0.781a1.015 1.015 0 0 0-0.282 0.719v1h1c0.276 0 0.538-0.1 0.719-0.281l0.781-0.781 0.781 0.78c0.181 0.182 0.443 0.282 0.719 0.282h1v-1c0-0.276-0.1-0.538-0.281-0.719l-0.782-0.781 0.782-0.781c0.18-0.181 0.281-0.443 0.281-0.719v-1h-1c-0.276 0-0.538 0.1-0.719 0.281l-0.781 0.781-0.781-0.78a1.015 1.015 0 0 0-0.719-0.282z" fill="currentColor" />
         </symbol>
     </svg>
-    <div class="titlebar"> Scrcpy啟動器 <div class="close">
+    <div class="titlebar"> @t-title; <div class="close">
             <svg width="24" height="24">
                 <use href="#icon-close"></use>
             </svg>
         </div>
-        <div class="hotkeys" title="查看快捷鍵">
+        <div class="hotkeys" title="@t-show_shortcuts;">
             <svg width="16" height="16">
                 <use href="#icon-hotkeys"></use>
             </svg>
@@ -77,76 +77,76 @@
     <div class="main">
         <div class="settings">
             <div class="setting">
-                <span><input type="checkbox" data-group="args" data-key="shortcut-mod" checked style="display: none;">MOD鍵</span>
+                <span><input type="checkbox" data-group="args" data-key="shortcut-mod" checked style="display: none;">@t-mod_key;</span>
                 <input type="text" data-group="args" placeholder="lctrl,lsuper" data-key="shortcut-mod">
             </div>
             <hr>
             <div class="settings_group_list">
-                <div class="settings_group_title selected" data-index="1">常用</div>
+                <div class="settings_group_title selected" data-index="1">@t-general;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="2">音訊</div>
+                <div class="settings_group_title" data-index="2">@t-audio;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="3">視訊</div>
+                <div class="settings_group_title" data-index="3">@t-video;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="4">視窗</div>
+                <div class="settings_group_title" data-index="4">@t-window;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="5">設備</div>
+                <div class="settings_group_title" data-index="5">@t-device;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="6">輸入</div>
+                <div class="settings_group_title" data-index="6">@t-input;</div>
                 <div class="settings_group_separator"></div>
-                <div class="settings_group_title" data-index="999">啟動器</div>
+                <div class="settings_group_title" data-index="999">@t-launcher;</div>
             </div>
             <div class="settings_group show" data-index="1">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-audio">不傳遞音訊</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-audio">@t-noAudio;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-control">禁用控制</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-control">@t-noControl;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="stay-awake">保持喚醒</label>
+                    <label><input type="checkbox" data-group="args" data-key="stay-awake">@t-stayAwake;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="turn-screen-off">關閉設備螢幕</label>
+                    <label><input type="checkbox" data-group="args" data-key="turn-screen-off">@t-turnScreenOff;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="keyboard">鍵盤模式</label>
+                    <label><input type="checkbox" data-group="args" data-key="keyboard">@t-keyboardMode;</label>
                     <input type="text" data-group="args" data-key="keyboard" value="sdk" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">軟體</div>
-                        <span value="sdk">軟體</span>
-                        <span value="uhid">物理</span>
+                        <div class="display">@t-sdk;</div>
+                        <span value="sdk">@t-sdk;</span>
+                        <span value="uhid">@t-uhid;</span>
                         <span value="aoa">AOAv2</span>
-                        <span value="disable">禁用</span>
+                        <span value="disable">@t-disable;</span>
                     </div>
                 </div>
             </div>
             <div class="settings_group" data-index="2">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-audio">不傳遞音訊</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-audio">@t-noAudio;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="audio-source">音訊源</label>
+                    <label><input type="checkbox" data-group="args" data-key="audio-source">@t-audioSrc;</label>
                     <input type="text" data-group="args" data-key="audio-source" value="output" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">設備輸出</div>
-                        <span value="output">設備輸出</span>
-                        <span value="playback">音訊播放</span>
-                        <span value="mic">麥克風</span>
-                        <span value="mic-unprocessed" title="捕獲麥克風未處理（原始）的聲音">麥克風（原始）</span>
-                        <span value="mic-camcorder" title="捕獲針對視訊錄製進行調整的麥克風，如果可用，則與攝影機具有相同的方向">麥克風（錄影）</span>
-                        <span value="mic-voice-recognition" title="捕捉針對語音辨識進行調整的麥克風">麥克風（識別）</span>
-                        <span value="mic-voice-communication" title="捕獲針對語音通訊進行調整的麥克風（例如，它將利用迴聲消除或自動增益控制（如果可用））">麥克風（通訊）</span>
-                        <span value="voice-call" title="捕獲語音呼叫的雙向語音">雙向語音</span>
-                        <span value="voice-call-uplink" title="捕獲語音呼叫的上行語音">上行語音</span>
-                        <span value="voice-call-downlink" title="捕獲語音呼叫的下行語音">下行語音</span>
-                        <span value="voice-performance" title="捕獲用於現場表演（卡拉 OK）的音頻，包括麥克風和設備播放">現場</span>
+                        <div class="display">@t-aOutput;</div>
+                        <span value="output">@t-aOutput;</span>
+                        <span value="playback">@t-aPlayback;</span>
+                        <span value="mic">@t-aMic;</span>
+                        <span value="mic-unprocessed" title="@t-aMic-1-d">@t-aMic-1;</span>
+                        <span value="mic-camcorder" title="@t-aMic-2-d;">@t-aMic-2;</span>
+                        <span value="mic-voice-recognition" title="@t-aMic-3-d;">@t-aMic-3;</span>
+                        <span value="mic-voice-communication" title="@t-aMic-4-d;">@t-aMic-4;</span>
+                        <span value="voice-call" title="@t-aVC-d;">@t-aVC;</span>
+                        <span value="voice-call-uplink" title="@t-aVC-up-d;">@t-aVC-up;</span>
+                        <span value="voice-call-downlink" title="@t-aVC-down-d;">@t-aVC-down;</span>
+                        <span value="voice-performance" title="@t-aLive-d;">@t-aLive;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="audio-codec">編碼格式</label>
+                    <label><input type="checkbox" data-group="args" data-key="audio-codec">@t-codec;</label>
                     <input type="text" data-group="args" data-key="audio-codec" value="opus" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
@@ -154,61 +154,61 @@
                         <span value="opus">Opus</span>
                         <span value="aac">AAC</span>
                         <span value="flac">FLAC</span>
-                        <span value="raw" title="未壓縮 PCM 16 位元 LE">原始</span>
+                        <span value="raw" title="@t-raw-d;">@t-raw;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="audio-bit-rate">比特率</label>
-                    <input type="text" data-group="args" placeholder="128000 或 128K 的格式" data-key="audio-bit-rate">
+                    <label><input type="checkbox" data-group="args" data-key="audio-bit-rate">@t-aBitRate;</label>
+                    <input type="text" data-group="args" placeholder="@t-aBitRate-p;" data-key="audio-bit-rate">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="audio-buffer">緩衝區</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="audio-buffer">
+                    <label><input type="checkbox" data-group="args" data-key="audio-buffer">@t-aBuffer;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="audio-buffer">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="audio-output-buffer">輸出緩衝區</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="audio-output-buffer">
+                    <label><input type="checkbox" data-group="args" data-key="audio-output-buffer">@t-aOBuffer;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="audio-output-buffer">
                 </div>
             </div>
             <div class="settings_group" data-index="3">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-video">不傳遞視訊</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-video">@t-noVideo;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="video-source">視訊源</label>
+                    <label><input type="checkbox" data-group="args" data-key="video-source">@t-videoSrc;</label>
                     <input type="text" data-group="args" data-key="video-source" value="display" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">手機畫面</div>
-                        <span value="display" title="默認音訊源會被設定為設備輸出">手機畫面</span>
-                        <span value="camera" title="默認音訊源會被設定為麥克風">相機畫面</span>
+                        <div class="display">@t-deviceDisplay;</div>
+                        <span value="display" title="@t-deviceDisplay-d;">@t-deviceDisplay;</span>
+                        <span value="camera" title="@t-camera-d;">@t-camera;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label title="同時設定水平和垂直的最大尺寸，例如設為1024則水平和垂直都不可以超過1024"><input type="checkbox" data-group="args" data-key="max-size">最大尺寸</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="max-size">
+                    <label title="@t-maxSize-d;"><input type="checkbox" data-group="args" data-key="max-size">@t-maxSize;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="max-size">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="video-bit-rate">比特率/碼率</label>
+                    <label><input type="checkbox" data-group="args" data-key="video-bit-rate">@t-aBitRate;</label>
                     <input type="text" data-group="args" placeholder="8M" data-key="video-bit-rate">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="max-fps">最大幀率</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="max-fps">
+                    <label><input type="checkbox" data-group="args" data-key="max-fps">@t-maxFps;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="max-fps">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="video-codec">編碼格式</label>
+                    <label><input type="checkbox" data-group="args" data-key="video-codec">@t-codec;</label>
                     <input type="text" data-group="args" data-key="video-codec" value="av1" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
                         <div class="display">AV1</div>
-                        <span value="h254" title="最經典的編碼方式，體積略大，兼容性最好">H.264</span>
-                        <span value="h265" title="H.264的進階版本，體積比H.264略小，但在老機型上不兼容">H.265</span>
-                        <span value="av1" title="較新的編碼形式，推薦使用，但需要較新的設備才能兼容">AV1</span>
+                        <span value="h264" title="@t-h264-d;">H.264</span>
+                        <span value="h265" title="@t-h265-d;">H.265</span>
+                        <span value="av1" title="@t-av1-d;">AV1</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="display-orientation">旋轉（顯示）</label>
+                    <label><input type="checkbox" data-group="args" data-key="display-orientation">@t-displayOri;</label>
                     <input type="text" data-group="args" data-key="display-orientation" value="0" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
@@ -217,14 +217,14 @@
                         <span value="90">90°</span>
                         <span value="180">180°</span>
                         <span value="270">270°</span>
-                        <span value="flip0">垂直翻轉</span>
-                        <span value="flip90">垂直翻轉 + 90°</span>
-                        <span value="flip180">垂直翻轉 + 180°</span>
-                        <span value="flip270">垂直翻轉 + 270°</span>
+                        <span value="flip0">@t-flip;</span>
+                        <span value="flip90">@t-flip; + 90°</span>
+                        <span value="flip180">@t-flip; + 180°</span>
+                        <span value="flip270">@t-flip; + 270°</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="record-orientation">旋轉（錄製）</label>
+                    <label><input type="checkbox" data-group="args" data-key="record-orientation">@t-recordOri;</label>
                     <input type="text" data-group="args" data-key="record-orientation" value="0" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
@@ -233,138 +233,154 @@
                         <span value="90">90°</span>
                         <span value="180">180°</span>
                         <span value="270">270°</span>
-                        <span value="flip0">垂直翻轉</span>
-                        <span value="flip90">垂直翻轉 + 90°</span>
-                        <span value="flip180">垂直翻轉 + 180°</span>
-                        <span value="flip270">垂直翻轉 + 270°</span>
+                        <span value="flip0">@t-flip;</span>
+                        <span value="flip90">@t-flip; + 90°</span>
+                        <span value="flip180">@t-flip; + 180°</span>
+                        <span value="flip270">@t-flip; + 270°</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="angle">旋轉（自由）</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="angle">
+                    <label><input type="checkbox" data-group="args" data-key="angle">@t-angle;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="angle">
                 </div>
                 <div class="setting">
-                    <label title="格式 <水平分辨率>:<垂直分辨率>:<水平起始點>:<垂直起始點>"><input type="checkbox" data-group="args" data-key="crop">裁剪</label>
-                    <input type="text" data-group="args" placeholder="<水平分辨率>:<垂直分辨率>:<水平起始點>:<垂直起始點>" title="<水平分辨率>:<垂直分辨率>:<水平起始點>:<垂直起始點>" data-key="crop">
+                    <label title="@t-crop-d;"><input type="checkbox" data-group="args" data-key="crop">@t-crop;</label>
+                    <input type="text" data-group="args" placeholder="@t-crop-p;" title="#t-crop-p;" data-key="crop">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="video-buffer">視訊緩衝區</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="video-buffer">
+                    <label><input type="checkbox" data-group="args" data-key="video-buffer">@t-aBuffer;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="video-buffer">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="v4l2-sink">V4L2路徑</label>
-                    <input type="text" data-group="args" placeholder="v4l2路徑" data-key="v4l2-sink">
+                    <label><input type="checkbox" data-group="args" data-key="v4l2-sink">V4L2 @t-path;</label>
+                    <input type="text" data-group="args" placeholder="v4l2@t-path;" data-key="v4l2-sink">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="v4l2-buffer">V4L2緩衝區</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="v4l2-buffer">
+                    <label><input type="checkbox" data-group="args" data-key="v4l2-buffer">V4L2 @t-aBuffer;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="v4l2-buffer">
                 </div>
                 <div class="setting">
-                    <label title="僅在設備有多個顯示器時需要設定"><input type="checkbox" data-group="args" data-key="display-id">顯示ID</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="display-id">
+                    <label title="@t-display-d;"><input type="checkbox" data-group="args" data-key="display-id">@t-display; ID</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="display-id">
                 </div>
             </div>
             <div class="settings_group" data-index="4">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-control">禁用控制</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-control">@t-noControl;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-window">不顯示視窗</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-window">@t-noWindow;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="window-width">視窗寬度</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="window-width">
+                    <label><input type="checkbox" data-group="args" data-key="window-width">@t-winW;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="window-width">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="window-height">視窗高度</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="window-height">
+                    <label><input type="checkbox" data-group="args" data-key="window-height">@t-winH;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="window-height">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="window-borderless">無邊框</label>
+                    <label><input type="checkbox" data-group="args" data-key="window-borderless">@t-borderless;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="always-on-top">始終在最上方</label>
+                    <label><input type="checkbox" data-group="args" data-key="always-on-top">@t-alwaysOnTop;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="fullscreen">以全螢幕啟動</label>
+                    <label><input type="checkbox" data-group="args" data-key="fullscreen">@t-fullscreen;</label>
                 </div>
             </div>
             <div class="settings_group" data-index="5">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="stay-awake">保持喚醒</label>
+                    <label><input type="checkbox" data-group="args" data-key="stay-awake">@t-stayAwake;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="screen-off-timeout">鎖屏超時</label>
-                    <input type="text" data-group="args" placeholder="僅數字" data-key="screen-off-timeout">
+                    <label><input type="checkbox" data-group="args" data-key="screen-off-timeout">@t-screenOffTimeout;</label>
+                    <input type="text" data-group="args" placeholder="@t-numOnly;" data-key="screen-off-timeout">
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="turn-screen-off">關閉設備螢幕</label>
+                    <label><input type="checkbox" data-group="args" data-key="turn-screen-off">@t-turnScreenOff;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="show-touches">顯示觸摸</label>
+                    <label><input type="checkbox" data-group="args" data-key="show-touches">@t-showTouches;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="disable-screensaver">禁用螢幕保護</label>
+                    <label><input type="checkbox" data-group="args" data-key="disable-screensaver">@t-disableScreensaver;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="power-off-on-close">斷開時熄屏</label>
+                    <label><input type="checkbox" data-group="args" data-key="power-off-on-close">@t-powerOffOnClose;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-power-on">禁用連接時喚醒</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-power-on">@t-noPowerOn;</label>
                 </div>
             </div>
             <div class="settings_group" data-index="6">
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="gamepad">控制器模式</label>
+                    <label><input type="checkbox" data-group="args" data-key="gamepad">@t-gamepadMode;</label>
                     <input type="text" data-group="args" data-key="gamepad" value="disabled" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">禁用</div>
-                        <span value="uhid">物理</span>
+                        <div class="display">@t-disable;</div>
+                        <span value="uhid">@t-uhid;</span>
                         <span value="aoa">AOAv2</span>
-                        <span value="disabled">禁用</span>
+                        <span value="disabled">@t-disable;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="keyboard">鍵盤模式</label>
+                    <label><input type="checkbox" data-group="args" data-key="keyboard">@t-keyboardMode;</label>
                     <input type="text" data-group="args" data-key="keyboard" value="sdk" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">軟體</div>
-                        <span value="sdk">軟體</span>
-                        <span value="uhid">物理</span>
+                        <div class="display">@t-sdk;</div>
+                        <span value="sdk">@t-sdk;</span>
+                        <span value="uhid">@t-uhid;</span>
                         <span value="aoa">AOAv2</span>
-                        <span value="disable">禁用</span>
+                        <span value="disable">@t-disable;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="mouse">滑鼠模式</label>
+                    <label><input type="checkbox" data-group="args" data-key="mouse">@t-mouseMode;</label>
                     <input type="text" data-group="args" data-key="mouse" value="sdk" style="display: none;">
                     <div class="selection">
                         <input type="text" class="holder">
-                        <div class="display">軟體</div>
-                        <span value="sdk">軟體</span>
-                        <span value="uhid">物理</span>
+                        <div class="display">@t-sdk;</div>
+                        <span value="sdk">@t-sdk;</span>
+                        <span value="uhid">@t-uhid;</span>
                         <span value="aoa">AOAv2</span>
-                        <span value="disable">禁用</span>
+                        <span value="disable">@t-disable;</span>
                     </div>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="no-mouse-hover">禁用游標懸停</label>
+                    <label><input type="checkbox" data-group="args" data-key="no-mouse-hover">@t-noHover;</label>
                 </div>
                 <div class="setting">
-                    <label><input type="checkbox" data-group="args" data-key="mouse-bind">滑鼠事件綁定</label><span id="mouse-bind-help"></span>
+                    <label><input type="checkbox" data-group="args" data-key="mouse-bind">@t-mouseBind;</label><span id="mouse-bind-help"></span>
                     <input type="text" data-group="args" placeholder="xxxx:xxxx" data-key="mouse-bind">
                 </div>
             </div>
             <!-- ------------------------------------------ -->
             <div class="settings_group" data-index="999">
-                <div class="setting"><label><input type="checkbox" data-group="system" data-key="min-start">以最小化啟動</label></div>
-                <div class="setting"><label title="關閉窗口不再最小化到托盤，而是直接關閉應用程式"><input type="checkbox" data-group="system" data-key="true-close">直接關閉</label></div>
+                <div class="setting">
+                    <div><input type="checkbox" data-group="system" data-key="language" checked style="display: none;">@t-lang;</div>
+                    <input type="text" data-group="system" data-key="language" value="auto" style="display: none;">
+                    <div class="selection">
+                        <input type="text" class="holder">
+                        <div class="display">@t-followSystem;</div>
+                        <span value="auto">@t-followSystem;</span>
+                        <span value="zh_TW">繁體中文</span>
+                        <span value="zh_CN">简体中文</span>
+                        <span value="en_US">English</span>
+                    </div>
+                </div>
+                <div class="setting">
+                    <label><input type="checkbox" data-group="system" data-key="min-start">@t-minStart;</label>
+                </div>
+                <div class="setting">
+                    <label title="@t-trueClose-d;"><input type="checkbox" data-group="system" data-key="true-close">@t-trueClose;</label>
+                </div>
             </div>
         </div>
         <div class="devicetitle">
-            <div class="title">設備</div>
+            <div class="title">@t-device;</div>
         </div>
         <div class="list">
             <div class="fav">
@@ -380,142 +396,138 @@
             <table cellspacing="0">
                 <thead>
                     <tr>
-                        <th>操作</th>
-                        <th>快捷鍵</th>
+                        <th>@t-action;</th>
+                        <th>@t-shortcuts;</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>切換全螢幕模式</td>
+                        <td>@t-toggleFullscreen;</td>
                         <td>MOD + F</td>
                     </tr>
                     <tr>
-                        <td>向左旋轉顯示</td>
+                        <td>@t-rotateLeft;</td>
                         <td>MOD + ←</td>
                     </tr>
                     <tr>
-                        <td>向右旋轉顯示</td>
+                        <td>@t-rotateRight;</td>
                         <td>MOD + →</td>
                     </tr>
                     <tr>
-                        <td>橫向翻轉顯示</td>
+                        <td>@t-hFlip;</td>
                         <td>MOD + Shift + ← | MOD + Shift + →</td>
                     </tr>
                     <tr>
-                        <td>縱向翻轉顯示</td>
+                        <td>@t-vFlip;</td>
                         <td>MOD + Shift + ↑| MOD + Shift + ↓</td>
                     </tr>
                     <tr>
-                        <td>暫停顯示</td>
+                        <td>@t-suspend;</td>
                         <td>MOD + Z</td>
                     </tr>
                     <tr>
-                        <td>解除暫停顯示</td>
+                        <td>@t-resume;</td>
                         <td>MOD + Shift + Z</td>
                     </tr>
                     <tr>
-                        <td>重置窗口到1:1大小(完美畫素)</td>
+                        <td>@t-reset100;</td>
                         <td>MOD + G</td>
                     </tr>
                     <tr>
-                        <td>調整窗口去除黑邊</td>
-                        <td>MOD + W | 雙擊黑色區域</td>
+                        <td>@t-cutBlack;</td>
+                        <td>MOD + W | @t-dblBlack;</td>
                     </tr>
                     <tr>
-                        <td>HOME鍵</td>
-                        <td>MOD + H | 中鍵點擊</td>
+                        <td>@t-homekey;</td>
+                        <td>MOD + H | @t-middleClick;</td>
                     </tr>
                     <tr>
-                        <td>返回鍵</td>
-                        <td>MOD + B | MOD + Backspace | 右鍵點擊</td>
+                        <td>@t-backkey;</td>
+                        <td>MOD + B | MOD + Backspace | @t-rightClick;</td>
                     </tr>
                     <tr>
-                        <td>應用切換</td>
-                        <td>MOD + S | 滑鼠4號鍵點擊</td>
+                        <td>@t-switchApps;</td>
+                        <td>MOD + S | @t-mouse4;</td>
                     </tr>
                     <tr>
-                        <td>選單鍵(舊系統)</td>
+                        <td>@t-menukey;</td>
                         <td>MOD + M</td>
                     </tr>
                     <tr>
-                        <td>音量+ 鍵</td>
+                        <td>@t-volPlus;</td>
                         <td>MOD + ↑</td>
                     </tr>
                     <tr>
-                        <td>音量- 鍵</td>
+                        <td>@t-volSub;</td>
                         <td>MOD + ↓</td>
                     </tr>
                     <tr>
-                        <td>電源鍵/鎖屏鍵</td>
+                        <td>@t-powerkey;</td>
                         <td>MOD + P</td>
                     </tr>
                     <tr>
-                        <td>點亮螢幕</td>
-                        <td>右鍵點擊</td>
+                        <td>@t-turnScreenOn;</td>
+                        <td>@t-rightClick;</td>
                     </tr>
                     <tr>
-                        <td>關閉設備螢幕(保持鏡像)</td>
+                        <td>@t-deviceBlack;</td>
                         <td>MOD + O</td>
                     </tr>
                     <tr>
-                        <td>打開設備螢幕</td>
+                        <td>@t-deviceShow;</td>
                         <td>MOD + Shift + O</td>
                     </tr>
                     <tr>
-                        <td>旋轉設備螢幕</td>
+                        <td>@t-deviceRotate;</td>
                         <td>MOD + R</td>
                     </tr>
                     <tr>
-                        <td>展開通知面板</td>
-                        <td>MOD + N | 滑鼠5號鍵點擊</td>
+                        <td>@t-showNotif;</td>
+                        <td>MOD + N | @t-mouse5;</td>
                     </tr>
                     <tr>
-                        <td>展開設定面板</td>
-                        <td>MOD + N + N | 雙擊滑鼠5號鍵</td>
+                        <td>@t-showSettingsPanle;</td>
+                        <td>MOD + N + N | @t-dblMouse5;</td>
                     </tr>
                     <tr>
-                        <td>收起面板</td>
+                        <td>@t-closePanle;</td>
                         <td>MOD + Shift + N</td>
                     </tr>
                     <tr>
-                        <td>複製到剪貼版</td>
+                        <td>@t-copy;</td>
                         <td>MOD + C</td>
                     </tr>
                     <tr>
-                        <td>剪切到剪貼版</td>
+                        <td>@t-cut;</td>
                         <td>MOD + X</td>
                     </tr>
                     <tr>
-                        <td>同步剪貼版並粘貼</td>
+                        <td>@t-paste;</td>
                         <td>MOD + V</td>
                     </tr>
                     <tr>
-                        <td>注入電腦剪貼版文字</td>
+                        <td>@t-injectText;</td>
                         <td>MOD + Shift + V</td>
                     </tr>
                     <tr>
-                        <td>打開鍵盤設定（僅限HID鍵盤）</td>
+                        <td>@t-keyboardSettings;</td>
                         <td>MOD + K</td>
                     </tr>
                     <tr>
-                        <td>啟用/禁用FPS計數器(在標準輸出)</td>
-                        <td>MOD + I</td>
+                        <td>@t-dblFinger;</td>
+                        <td>CTRL + @t-drag;</td>
                     </tr>
                     <tr>
-                        <td>雙指操作（旋轉/縮放）</td>
-                        <td>CTRL + 點擊並移動</td>
+                        <td>@t-dblFingerSync;</td>
+                        <td>SHIFT + @t-drag;</td>
                     </tr>
                     <tr>
-                        <td>雙指操作（同步）</td>
-                        <td>SHIFT + 點擊並移動</td>
+                        <td>@t-installAPK;</td>
+                        <td>@t-dragInAPK;</td>
                     </tr>
                     <tr>
-                        <td>從電腦安裝應用</td>
-                        <td>拖入APK檔案</td>
-                    </tr>
-                    <tr>
-                        <td>推送檔案到設備</td>
-                        <td>拖入非APK檔案</td>
+                        <td>@t-pushFile;</td>
+                        <td>@t-dragInNonAPK;</td>
                     </tr>
                 </tbody>
             </table>

@@ -1,31 +1,37 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const lodash = require('lodash');
+let osLanguage;
+let langdata;
+let langObserver;
 const Bonjour = require('bonjour-service').default;
 const bonjourInstance = new Bonjour();
-let watcherBrowser
+let watcherBrowser;
 const ImageBlurProcessor = require('./ImageBlurProcessor.js');
 const { exec, execSync, spawn } = require('child_process');
 
 const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
-const Tray = new nw.Tray({ title: 'Scrcpy啟動器', icon: 'app/tray.png' });
+const Tray = new nw.Tray({ title: "", icon: 'app/tray.png' });
 const menu = new nw.Menu();
 let menu_phones = [];
 const userHome = os.homedir();
 const configDir = `${userHome}/.config/scrcpy_launcher`;
-menu.append(new nw.MenuItem({
-    label: "顯示視窗",
+const showWindowMenu = new nw.MenuItem({
+    label: "Show Window",
     click: () => {
         win.show();
     }
-}));
-menu.append(new nw.MenuItem({
-    label: "退出",
+});
+const quitMenu = new nw.MenuItem({
+    label: "Quit",
     click: () => {
-        nw.App.quit();
+        win.close();
     }
-}));
+});
+menu.append(showWindowMenu);
+menu.append(quitMenu);
 Tray.menu = menu;
 
 const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
@@ -223,22 +229,41 @@ let settings = {
         "true-close": {
             enabled: false,
             value: null
+        },
+        "language": {
+            enabled: true,
+            value: "auto"
         }
     },
     alias: {}
 };
 if (fs.existsSync(`${configDir}/user_config.json`)) {
-    settings = JSON.parse(fs.readFileSync(`${configDir}/user_config.json`, "utf-8"));
-} else {
-    if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true });
-    }
-    fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+    let user_settings = JSON.parse(fs.readFileSync(`${configDir}/user_config.json`, "utf-8"));
+    settings = lodash.merge(settings, user_settings);
 }
+
+if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+}
+fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+
 const viewers = {};
 
 nw.App.on("open", () => {
     win.show();
+})
+
+window.addEventListener("DOMContentLoaded", () => {
+    // 語言首次更新
+    if (settings.system.language.value === "auto") {
+        osLanguage = process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || process.env.LC_NAME || process.env.LANGUAGE || navigator.language || 'en_US';
+        osLanguage = osLanguage.split(".", 2)[0];
+        osLanguage = osLanguage.split(":", 2)[0];
+        osLanguage = osLanguage.replaceAll("-", "_");
+    } else {
+        osLanguage = settings.system.language.value;
+    }
+    setLang();
 })
 
 _(() => {
@@ -249,7 +274,7 @@ _(() => {
     const checklist = [adb, scrcpy];
     for (const command of checklist) {
         if (!checkCommandSync(command)) {
-            alert(`關鍵組件缺失：${command.toUpperCase()}未安裝或未正確設定Path！`);
+            alert(`${$("commandLose1")}${command.toUpperCase()}${$("commandLose1")}`);
             window.close();
         }
     }
@@ -332,6 +357,19 @@ _(() => {
             const valueText = _(`span[value="${val}"]`, item).text();
             display.text(valueText);
         })
+
+        // 語言即時更新
+        if (key === "language") {
+            if (val === "auto") {
+                osLanguage = process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || process.env.LC_NAME || process.env.LANGUAGE || navigator.language || 'en_US';
+                osLanguage = osLanguage.split(".", 2)[0];
+                osLanguage = osLanguage.split(":", 2)[0];
+                osLanguage = osLanguage.replaceAll("-", "_");
+            } else {
+                osLanguage = val;
+            }
+            setLang();
+        }
     })
 
 
@@ -357,13 +395,6 @@ _(() => {
                 _(".shortcuts").removeClass("show");
             }
         }
-    })
-
-    _("#connect_by_ip").bind("click", () => {
-        const ipInput = prompt("輸入 IP:端口(英文冒號)");
-        const ip = ipInput.split(":")[0];
-        const connectPort = ipInput.split(":")[1];
-        connect(ip, connectPort);
     })
 
     const keyMap = { "AltLeft": "lalt", "AltRight": "ralt", "ControlLeft": "lctrl", "ControlRight": "rctrl", "MetaLeft": "lsuper", "MetaRight": "rsuper" };
@@ -434,11 +465,12 @@ win.on("move", (x, y) => {
 })
 
 // 確保在應用退出時清理
-window.addEventListener('beforeunload', () => {
+win.on('close', function () {
     console.log('應用即將退出，停止所有 mDNS 瀏覽器...');
     watcherBrowser.stop();
     bonjourInstance.destroy();
     Tray.remove();
+    this.close(true);
 });
 
 function checkCommandSync(command) {
@@ -482,6 +514,7 @@ function getDevicesFromAdb() {
 }
 
 function watchDeviceFromLocalNetwork() {
+    if (watcherBrowser !== undefined) return;
     watcherBrowser = bonjourInstance.find({ type: 'adb-tls-connect', protocol: 'tcp' });
     const mainListOther = _(document.querySelector(".main .list .other"));
 
@@ -501,18 +534,18 @@ function watchDeviceFromLocalNetwork() {
             sn = sn.trim();
             const alias = settings.alias[sn]?.alias || service.name;
             const brand = settings.alias[sn]?.brand || "other";
-            const model = settings.alias[sn]?.model || "未知";
+            const model = settings.alias[sn]?.model || $("unknow");
             mainListOther.append(`<div class="device" id="${sn}">
                     <div class="brand">
                         <img src="brands/${brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
                         <div class="model">${model}</div>
                     </div>
                     <div class="info">
-                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="未連接">未連接</span></div>
+                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${$("unconnected")}">${$("unconnected")}</span></div>
                         <div class="realname" title="${sn}">${sn}</div>
                     </div>
                     <div class="control">
-                        <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="連接">
+                        <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="${$("connect")}">
                             <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                                 <use href="#icon-connect"></use>
                             </svg>
@@ -524,10 +557,17 @@ function watchDeviceFromLocalNetwork() {
     });
 
     watcherBrowser.on('down', (service) => {
+        let sn;
+        const sn_a = service.name.split("-");
+        if (sn_a.length == 3) {
+            sn = sn_a[1];
+        } else {
+            sn = service.name;
+        }
+        sn = sn.trim();
         const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
-        _(`.device[id="${ipv4Address}:${service.port}"]`).remove();
+        _(`.device[id="${sn}"]`).remove();
     });
-
 }
 
 function updateDevicesList() {
@@ -536,8 +576,8 @@ function updateDevicesList() {
     const mainListFav = _(document.querySelector(".main .list .fav"));
     const mainListConnected = _(document.querySelector(".main .list .connected"));
     const mainListOther = _(document.querySelector(".main .list .other"));
-    const statusStr = { device: "已連接", offline: "離線", unauthorized: "未授權", "no permissions": "沒有權限" }
-    const statusDesStr = { device: "設備已連接並給於授權，你可以正常查看這個設備", offline: "設備曾連接並記憶，但此刻處於離線狀態，不可查看", unauthorized: "設備等待手機端授權，請在手機上操作", "no permissions": "你無權連接這個設備" }
+    const statusStr = { device: $("connected"), offline: $("offline"), unauthorized: $("unauthorized"), "no permissions": $("noPermissions") }
+    const statusDesStr = { device: $("connected-d"), offline: $("offline-d"), unauthorized: $("unauthorized-d"), "no permissions": $("noPermissions-d") }
     mainListFav.empty();
     mainListConnected.empty();
     // 移除所有菜单项
@@ -558,7 +598,7 @@ function updateDevicesList() {
             alias = device.deviceName || device.model || device.sn;
         }
         alias = alias.trim();
-        if (settings.alias[device.sn]) {
+        if (settings.alias[device.sn].auto == false) {
             mainListFav.append(`<div class="device hidden">
                 <div class="brand">
                     <img src="brands/${device.brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
@@ -569,17 +609,17 @@ function updateDevicesList() {
                     <div class="realname" title="${device.sn}">${device.sn}</div>
                 </div>
                 <div class="control">
-                    <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
+                    <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="${$("view")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-view"></use>
                         </svg>
                     </div>
-                    <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="編輯別名">
+                    <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="${$("editAlias")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-edit"></use>
                         </svg>
                     </div>
-                    <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                    <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="${$("disconnect")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-disconnect"></use>
                         </svg>
@@ -597,17 +637,17 @@ function updateDevicesList() {
                         <div class="realname" title="${device.sn}">${device.sn}</div>
                     </div>
                     <div class="control">
-                        <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
+                        <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="${$("view")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                         <use href="#icon-view"></use>
                         </svg>
                         </div>
-                        <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="編輯別名">
+                        <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="${$("editAlias")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                         <use href="#icon-edit"></use>
                         </svg>
                         </div>
-                        <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="斷開連接">
+                        <div class="disconnect S${device.status}" data-id="${device.id}" onclick="disconnect(this)" title="${$("disconnect")}">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                         <use href="#icon-disconnect"></use>
                         </svg>
@@ -685,7 +725,7 @@ function view(th) {
 
 function setAlias(th) {
     const deviceId = _(th).attr("data-id");
-    let alias = prompt("輸入別名", _(".t1", _(th).parent(2)).text());
+    let alias = prompt($("inputAlias"), _(".t1", _(th).parent(2)).text());
     if (alias === "") {
         delete settings.alias[deviceId];
         fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
@@ -702,7 +742,7 @@ function setAlias(th) {
 
 function disconnect(th) {
     const deviceId = _(th).attr("data-id");
-    if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。")) {
+    if (confirm($("disconnectConfirm"))) {
         execSync(`${adb} disconnect ${deviceId}`);
         updateDevicesList();
         hiddenConnectedFromOthers();
@@ -760,13 +800,13 @@ function getCurrentWindowScreen() {
 function connect(ip, port) {
     const stdOut = execSync(`${adb} connect ${ip}:${port}`, execOptions);
     if (stdOut.trim() === `failed to connect to ${ip}:${port}`) {
-        const pairPort = prompt("需要配對，請輸入配對用端口號");
-        const pairCode = prompt("請輸入配對碼");
+        const pairPort = prompt($("requestPair"));
+        const pairCode = prompt($("inputPairCode"));
         exec(`${adb} pair ${ip}:${pairPort} ${pairCode}`, execOptions, (error, stdout) => {
             if (stdout.match(/^Successfully\spaired\sto\s.+/)) {
                 exec(`${adb} connect ${ip}:${port}`, execOptions, (error, stdout) => {
                     if (stdout.match(/^failed\sto\sconnect\sto\s.+/)) {
-                        alert("連接失敗！");
+                        alert($("connectFailed"));
                     } else {
                         updateDevicesList();
                         const _item = _(`.control .connect[data-id="${ip}"]`);
@@ -774,7 +814,7 @@ function connect(ip, port) {
                     }
                 })
             } else {
-                alert("配對失敗！");
+                alert($("pairFailed"));
             }
         })
     } else {
@@ -782,4 +822,50 @@ function connect(ip, port) {
         const _item = _(`.control .connect[data-id="${ip}"]`);
         _item.trigger("click");
     }
+}
+
+function setLang() {
+    const langfile = `${rootDir}/app/locales/${osLanguage}.lang`;
+    const obbody = _("html")[0];
+    const obconfig = { attributes: true, childList: true, subtree: true };
+
+    if (langObserver) langObserver.disconnect();
+
+    fs.readFile(langfile, "utf-8", (err, langfiledata) => {
+        if (err) {
+            langfiledata = fs.readFileSync(`${rootDir}/app/locales/en_US.lang`, "utf-8");
+        }
+        langdata = JSON.parse(langfiledata);
+
+        const nl = _.getTextNodes(_("html")[0]);
+        for (const tn of nl) {
+            if (tn.nodeValue.trim() == "") continue;
+            if (tn.tempStr == undefined) {
+                tn.tempStr = tn.nodeValue.trim();
+            } else {
+                tn.nodeValue = tn.tempStr;
+            }
+
+            for (const key in langdata) {
+                const nt = langdata[key];
+                tn.nodeValue = tn.nodeValue.replaceAll(`@t-${key};`, nt);
+            }
+            showWindowMenu.label = langdata["showWindow"];
+            quitMenu.label = langdata["quit"];
+            Tray.title = langdata["title"];
+        }
+
+
+        const al = _("[title],[placeholder],[value]");
+        al.each(function () {
+            velfun.private.setAttrsLang(this, langdata);
+        });
+
+        langObserver.observe(obbody, obconfig);
+    })
+}
+
+function $(key) {
+    if (!key) return;
+    return langdata[key];
 }
