@@ -3,29 +3,24 @@ const fs = require('fs');
 const path = require('path');
 const Bonjour = require('bonjour-service').default;
 const bonjourInstance = new Bonjour();
+let watcherBrowser
 const ImageBlurProcessor = require('./ImageBlurProcessor.js');
 const { exec, execSync, spawn } = require('child_process');
-const { stderr } = require('process');
 
 const rootDir = path.dirname(process.execPath);
 const win = nw.Window.get();
 const Tray = new nw.Tray({ title: 'Scrcpy啟動器', icon: 'app/tray.png' });
 const menu = new nw.Menu();
+let menu_phones = [];
 const userHome = os.homedir();
 const configDir = `${userHome}/.config/scrcpy_launcher`;
 menu.append(new nw.MenuItem({
-    label: "分隔線",
-    type: 'separator'
-}));
-menu.append(new nw.MenuItem({
-    id: 998,
     label: "顯示視窗",
     click: () => {
         win.show();
     }
 }));
 menu.append(new nw.MenuItem({
-    id: 999,
     label: "退出",
     click: () => {
         nw.App.quit();
@@ -33,18 +28,20 @@ menu.append(new nw.MenuItem({
 }));
 Tray.menu = menu;
 
+const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
+const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
+
 const execOptions = {
     env: {
         ...process.env, // 繼承當前 Node.js 進程的環境變數
         LANG: 'en_US.UTF-8', // 主要的語言設定
         LC_ALL: 'en_US.UTF-8', // 覆寫所有地區設定為英文
-        LANGUAGE: 'en_US:en' // 備選語言列表 (GNU gettext)
+        LANGUAGE: 'en_US:en', // 備選語言列表 (GNU gettext)
+        ADB: adb
     },
     encoding: 'utf-8'
 };
 
-const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
-const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
 
 let lasttimeGot = "";
 let wallpaperPath;
@@ -177,7 +174,7 @@ let settings = {
             value: "300"
         },
         "turn-screen-off": {
-            enabled: true,
+            enabled: false,
             value: null
         },
         "show-touches": {
@@ -322,7 +319,10 @@ _(() => {
         const group = _(e.target).attr("data-group");
         const key = _(e.target).attr("data-key");
         const val = _(e.target).val();
-        settings[group][key].value = val;
+        try {
+            settings[group][key].value = val;
+        } catch (error) { }
+
         fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         _(`[type="text"][data-group="${group}"][data-key="${key}"]`).each((i, item) => {
             item.value = val;
@@ -436,7 +436,7 @@ win.on("move", (x, y) => {
 // 確保在應用退出時清理
 window.addEventListener('beforeunload', () => {
     console.log('應用即將退出，停止所有 mDNS 瀏覽器...');
-    browsers.forEach(browser => browser.stop());
+    watcherBrowser.stop();
     bonjourInstance.destroy();
     Tray.remove();
 });
@@ -467,12 +467,13 @@ function getDevicesFromAdb() {
             console.log(`已獲取設備：`, device);
             const brand = execSync(`${adb} -s ${device[1]} shell getprop ro.product.brand`, execOptions);
             const model = execSync(`${adb} -s ${device[1]} shell getprop ro.product.model`, execOptions);
+            const sn = execSync(`${adb} -s ${device[1]} shell getprop ro.serialno`, execOptions);
             let deviceName = execSync(`${adb} -s ${device[1]} shell settings get global device_name`, execOptions);
             if (!deviceName || deviceName == "null") {
                 deviceName = execSync(`${adb} -s ${device[1]} shell settings get system bluetooth_name`, execOptions);
                 if (!deviceName || deviceName == "null") deviceName = null;
             }
-            re.push({ id: device[1], status: device[2], brand: brand.toLowerCase(), model: model, deviceName: deviceName });
+            re.push({ id: device[1], status: device[2], brand: brand.toLowerCase().trim(), model: model.trim(), deviceName: deviceName.trim(), sn: sn.trim() });
         }
         return re;
     } catch (error) {
@@ -481,52 +482,52 @@ function getDevicesFromAdb() {
 }
 
 function watchDeviceFromLocalNetwork() {
-    const serviceTypesToFind = [
-        { type: 'adb-tls-connect', protocol: 'tcp', description: 'ADB Connect Service' }  // 用於連接
-    ];
+    watcherBrowser = bonjourInstance.find({ type: 'adb-tls-connect', protocol: 'tcp' });
+    const mainListOther = _(document.querySelector(".main .list .other"));
 
-    const browsers = [];
+    watcherBrowser.on('up', (service) => {
+        // 提取連接所需信息
+        // 通常，你會從 service.addresses 中獲取 IPv4 地址
+        const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
 
-    serviceTypesToFind.forEach(serviceIdentifier => {
-        const browser = bonjourInstance.find({ type: serviceIdentifier.type, protocol: serviceIdentifier.protocol });
-        const mainListOther = _(document.querySelector(".main .list .other"));
-
-        browser.on('up', (service) => {
-            // 提取連接所需信息
-            // 通常，你會從 service.addresses 中獲取 IPv4 地址
-            const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
-
-            if (ipv4Address && service.port) {
-                const alias = settings.alias[service.name] || service.name;
-                mainListOther.append(`<div class="device" id="${ipv4Address}:${service.port}">
-                <div class="info">
-                    <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="未連接">未連接</span></div>
-                    <div class="realname" title="${ipv4Address}:${service.port}">${ipv4Address}:${service.port}</div>
-                </div>
-                <div class="control">
-                    <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="連接">
-                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                            <use href="#icon-connect"></use>
-                        </svg>
-                    </div>
-                    <div class="addAlias" data-id="${ipv4Address}:${service.port}" onclick="setAlias(this)" title="編輯別名">
-                        <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                            <use href="#icon-edit"></use>
-                        </svg>
-                    </div>
-                </div>
-            </div>`);
-                hiddenConnectedFromOthers();
+        if (ipv4Address && service.port) {
+            let sn;
+            const sn_a = service.name.split("-");
+            if (sn_a.length == 3) {
+                sn = sn_a[1];
+            } else {
+                sn = service.name;
             }
-        });
-
-        browser.on('down', (service) => {
-            const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
-            _(`.device[id="${ipv4Address}:${service.port}"]`).remove();
-        });
-
-        browsers.push(browser);
+            sn = sn.trim();
+            const alias = settings.alias[sn]?.alias || service.name;
+            const brand = settings.alias[sn]?.brand || "other";
+            const model = settings.alias[sn]?.model || "未知";
+            mainListOther.append(`<div class="device" id="${sn}">
+                    <div class="brand">
+                        <img src="brands/${brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
+                        <div class="model">${model}</div>
+                    </div>
+                    <div class="info">
+                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="未連接">未連接</span></div>
+                        <div class="realname" title="${sn}">${sn}</div>
+                    </div>
+                    <div class="control">
+                        <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="連接">
+                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#icon-connect"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>`);
+            hiddenConnectedFromOthers();
+        }
     });
+
+    watcherBrowser.on('down', (service) => {
+        const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
+        _(`.device[id="${ipv4Address}:${service.port}"]`).remove();
+    });
+
 }
 
 function updateDevicesList() {
@@ -534,20 +535,30 @@ function updateDevicesList() {
     if (devices === false) return;
     const mainListFav = _(document.querySelector(".main .list .fav"));
     const mainListConnected = _(document.querySelector(".main .list .connected"));
+    const mainListOther = _(document.querySelector(".main .list .other"));
     const statusStr = { device: "已連接", offline: "離線", unauthorized: "未授權", "no permissions": "沒有權限" }
     const statusDesStr = { device: "設備已連接並給於授權，你可以正常查看這個設備", offline: "設備曾連接並記憶，但此刻處於離線狀態，不可查看", unauthorized: "設備等待手機端授權，請在手機上操作", "no permissions": "你無權連接這個設備" }
     mainListFav.empty();
     mainListConnected.empty();
     // 移除所有菜单项
-    for (const itemIndex in menu.items) {
-        const item = menu.items[itemIndex];
-        if (item.label != "顯示視窗" && item.label != "退出" && item.type != "separator") {
-            menu.remove(item);
-        }
+    for (const i in menu_phones) {
+        menu.remove(menu_phones[i]);
+        delete menu_phones[i];
+    }
+    if (devices.length > 0) {
+        menu_phones.push(new nw.MenuItem({
+            type: 'separator'
+        }))
     }
     for (const device of devices) {
-        const alias = settings.alias[device.id] || device.deviceName || device.model || device.id;
-        if (settings.alias[device.id]) {
+        let alias;
+        if (settings.alias[device.sn] && settings.alias[device.sn].auto == false) {
+            alias = settings.alias[device.sn].alias;
+        } else {
+            alias = device.deviceName || device.model || device.sn;
+        }
+        alias = alias.trim();
+        if (settings.alias[device.sn]) {
             mainListFav.append(`<div class="device hidden">
                 <div class="brand">
                     <img src="brands/${device.brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
@@ -555,7 +566,7 @@ function updateDevicesList() {
                 </div>
                 <div class="info">
                     <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
-                    <div class="realname" title="${device.id}">${device.id}</div>
+                    <div class="realname" title="${device.sn}">${device.sn}</div>
                 </div>
                 <div class="control">
                     <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
@@ -563,7 +574,7 @@ function updateDevicesList() {
                             <use href="#icon-view"></use>
                         </svg>
                     </div>
-                    <div class="addAlias" data-id="${device.id}" onclick="setAlias(this)" title="編輯別名">
+                    <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="編輯別名">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <use href="#icon-edit"></use>
                         </svg>
@@ -583,7 +594,7 @@ function updateDevicesList() {
                 </div>
                 <div class="info">
                         <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${statusDesStr[device.status]}">${statusStr[device.status]}</span></div>
-                        <div class="realname" title="${device.id}">${device.id}</div>
+                        <div class="realname" title="${device.sn}">${device.sn}</div>
                     </div>
                     <div class="control">
                         <div class="connect S${device.status}" data-id="${device.id}" onclick="view(this)" title="查看">
@@ -591,7 +602,7 @@ function updateDevicesList() {
                         <use href="#icon-view"></use>
                         </svg>
                         </div>
-                        <div class="addAlias" data-id="${device.id}" onclick="setAlias(this)" title="編輯別名">
+                        <div class="addAlias" data-id="${device.sn}" onclick="setAlias(this)" title="編輯別名">
                         <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
                         <use href="#icon-edit"></use>
                         </svg>
@@ -604,16 +615,26 @@ function updateDevicesList() {
                         </div>
                         </div>`);
         }
-        menu.insert(new nw.MenuItem({
-            label: alias, click: () => {
+        menu_phones.push(new nw.MenuItem({
+            label: alias.trim(), click: () => {
                 _(`.control .connect[data-id="${device.id}"]`).trigger("click");
             }
-        }), 0);
-
+        }));
+        if (!settings.alias[devices.sn] || settings.alias[device.sn].auto) {
+            settings.alias[device.sn] = { auto: true, alias: alias, brand: device.brand, model: device.model };
+            fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
+            const deviceOnOther = _(`.device[id="${device.sn}"]`, mainListOther);
+            _(".brand>img", deviceOnOther)[0].src = `brands/${device.brand}.png`;
+            _(".brand>.model", deviceOnOther).text(device.model);
+            _(".info .alias .t1", deviceOnOther).text(alias);
+        }
         // 已連接的設備從探測列表隱藏
         hiddenConnectedFromOthers();
     }
     _(".fav .device, .connected .device").removeClass("hidden");
+    for (const i in menu_phones) {
+        menu.insert(menu_phones[i], 0);
+    }
     Tray.menu = menu;
     if (_(".device", mainListFav).length == 0) {
         mainListFav.css("display: none");
@@ -649,9 +670,12 @@ function view(th) {
                 }
             }
         }
-        const scrcpyWindow = viewers[deviceId] = spawn(scrcpy, ["-s", deviceId, `--window-title=${alias}`, ...args]);
-        scrcpyWindow.on("error", (msg) => {
-            console.log(msg);
+        const scrcpyWindow = viewers[deviceId] = spawn(scrcpy, ["-s", deviceId, `--window-title=${alias}`, ...args], execOptions);
+        scrcpyWindow.stderr.on("data", (msg) => {
+            const errorMsg = msg.toString().match(/^ERROR:\s(.+)/);
+            if (errorMsg) {
+                alert(errorMsg[1]);
+            }
         })
         scrcpyWindow.on("close", () => {
             _(th).removeClass("on");
@@ -668,7 +692,8 @@ function setAlias(th) {
         lasttimeGot = "";
         updateDevicesList();
     } else if (alias !== null) {
-        settings.alias[deviceId] = alias;
+        settings.alias[deviceId].auto = false;
+        settings.alias[deviceId].alias = alias;
         fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
         lasttimeGot = "";
         updateDevicesList();
@@ -677,7 +702,7 @@ function setAlias(th) {
 
 function disconnect(th) {
     const deviceId = _(th).attr("data-id");
-    if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。\n如果你端開的是無線連接，則需要重新使用IP手動連接。")) {
+    if (confirm("確定斷開此連接嗎？\n如果你斷開的是USB連接，重新拔插即可恢復。")) {
         execSync(`${adb} disconnect ${deviceId}`);
         updateDevicesList();
         hiddenConnectedFromOthers();

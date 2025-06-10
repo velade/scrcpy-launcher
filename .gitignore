@@ -22,3 +22,5 @@ nwjs/*
 !nwjs/.gitkeep
 dist/*
 !dist/.gitkeep
+src/app/tmp/*
+!tmp/.gitkeep

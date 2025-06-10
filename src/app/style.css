@@ -101,6 +101,7 @@ body::after {
 
 .titlebar .close:hover {
     background-color: brown;
+    color: white;
 }
 
 .main {
