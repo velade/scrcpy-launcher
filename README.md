@@ -6,7 +6,7 @@ A simple scrcpy GUI launcher.
 ## Basic Features
 - Instantly refreshed device list
 - Device alias management
-- Simple common settings
+- Complete graphical parameter setting
 
 ## Installation
 ### Through AUR (recommended)
@@ -18,11 +18,11 @@ For other distributions or Windows users, it is not packaged yet, please see the
 
 #### 1. Dependencies
 - android-tools (adb command): Scrcpy itself relies on ADB to provide a connection. You can:
-- Install adb (platform-tools) to the system and set the path so that adb can be executed through `adb` instead of `./adb` or `path/to/adb`.
-- Install/unzip adb to `launcher directory/adb`, the application will give priority to the adb stored in the launcher directory (**If you do not use this method, please make sure there is no adb folder in the launcher directory**)
+    - Install adb (platform-tools) to the system and set the path so that adb can be executed through `adb` instead of `./adb` or `path/to/adb`.
+    - Install/unzip adb to `launcher directory/adb`, the application will give priority to the adb stored in the launcher directory (**If you do not use this method, please make sure there is no adb folder in the launcher directory**)
 - scrcpy: The launcher does not include scrcpy by default, you can:
-- Install Scrcpy to the system and set the path (this should usually be automatic) so that Scrcpy can be executed through `scrcpy` instead of `./scrcpy` or `path/to/scrcpy`.
-- Install/unzip scrcpy to `launcher directory/scrcpy`, the application will give priority to the scrcpy stored in the launcher directory (**If you do not use this method, please make sure there is no scrcpy folder in the launcher directory**)
+    - Install Scrcpy to the system and set the path (this should usually be automatic) so that Scrcpy can be executed through `scrcpy` instead of `./scrcpy` or `path/to/scrcpy`.
+    - Install/unzip scrcpy to `launcher directory/scrcpy`, the application will give priority to the scrcpy stored in the launcher directory (**If you do not use this method, please make sure there is no scrcpy folder in the launcher directory**)
 ##### Example of built-in directory structure
 ```
 Launcher directory (scrcpy-launcher)
@@ -32,8 +32,8 @@ Launcher directory (scrcpy-launcher)
 │   ├── (other files)
 │   └── adb or adb.exe
 └── scrcpy
-├── (other files)
-└── scrcpy or scrcpy.exe
+    ├── (other files)
+    └── scrcpy or scrcpy.exe
 ```
 #### 2. Unzip
 - Unzip the compressed file downloaded from release to any location
@@ -53,7 +53,7 @@ This script will automatically download the 0.64.1 version of nwjs. The compress
 
 The packaged compressed file will be placed in the `dist/<version number>` folder
 
-**Do not delete the dist and nwjs folders! If these two folders cannot be found, the script will not automatically create them, but will report an error! **
+**Do not delete the dist and nwjs folders! If these two folders cannot be found, the script will not automatically create them, but will report an error!**
 
 ## NW.js version
 **It is not recommended to update to a version higher than 0.64.1, because in subsequent versions, there will be extra overlays that break the window rounding effect**
