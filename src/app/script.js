@@ -4,7 +4,63 @@ const path = require('path');
 const lodash = require('lodash');
 let osLanguage;
 let langdata;
-let langObserver;
+const obbody = _("html")[0];
+const obconfig = { attributes: true, childList: true, subtree: true };
+const obcallback = function (ml, observer) {
+    for (const mr of ml) {
+        /*>>>>语言更新*/
+        switch (mr.type) {
+            case "attributes":
+                if (!["alt", "title", "placeholder", "value"].includes(mr.attributeName)) continue;
+
+                observer.disconnect();
+
+                if (_(mr.target).hasAttr(mr.attributeName)) {
+
+                    _(mr.target).attr("data-" + mr.attributeName + "TempStr", _(mr.target).attr(mr.attributeName));
+                }
+
+                for (const key in langdata) {
+
+                    const nt = langdata[key];
+                    try {
+
+                        _(mr.target).attr(mr.attributeName, _(mr.target).attr(mr.attributeName).replaceAll(`@t-${key};`, nt));
+                    } catch (e) { }
+                }
+
+                observer.observe(obbody, obconfig);
+                break;
+            case "childList":
+
+                observer.disconnect();
+                for (const adn of mr.addedNodes) {
+
+                    const nl = _.getTextNodes(adn);
+                    for (const tn of nl) {
+                        if (tn.tempStr == undefined) {
+                            tn.tempStr = tn.nodeValue.trim();
+                        } else {
+                            tn.nodeValue = tn.tempStr;
+                        }
+
+                        for (const key in langdata) {
+
+                            const nt = langdata[key];
+                            tn.nodeValue = tn.nodeValue.replaceAll(`@t-${key};`, nt);
+                        }
+                    }
+
+                    velfun.private.setAttrsLang(adn, langdata);
+                }
+
+                observer.observe(obbody, obconfig);
+                break;
+        }
+        /*<<<<语言更新*/
+    }
+}
+let langObserver = new MutationObserver(obcallback);
 const Bonjour = require('bonjour-service').default;
 const bonjourInstance = new Bonjour();
 let watcherBrowser;
@@ -263,10 +319,12 @@ window.addEventListener("DOMContentLoaded", () => {
     } else {
         osLanguage = settings.system.language.value;
     }
-    setLang();
+    setLang().then(() => {
+        init();
+    });
 })
 
-_(() => {
+function init() {
     _(document.body).ccm({})
     if (os.platform() == "win32") {
         _(".titlebar").addClass("btr");
@@ -368,7 +426,12 @@ _(() => {
             } else {
                 osLanguage = val;
             }
-            setLang();
+            setLang().then(() => {
+                lasttimeGot = "";
+                updateDevicesList();
+                watcherBrowser.update();
+                updateFoundList(watcherBrowser.services);
+            });
         }
     })
 
@@ -458,7 +521,7 @@ _(() => {
     setInterval(() => {
         updateDevicesList();
     }, 1000)
-})
+}
 
 win.on("move", (x, y) => {
     _(document.body).css(`background-position: -${x}px -${y}px;`);
@@ -519,54 +582,11 @@ function watchDeviceFromLocalNetwork() {
     const mainListOther = _(document.querySelector(".main .list .other"));
 
     watcherBrowser.on('up', (service) => {
-        // 提取連接所需信息
-        // 通常，你會從 service.addresses 中獲取 IPv4 地址
-        const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
-
-        if (ipv4Address && service.port) {
-            let sn;
-            const sn_a = service.name.split("-");
-            if (sn_a.length == 3) {
-                sn = sn_a[1];
-            } else {
-                sn = service.name;
-            }
-            sn = sn.trim();
-            const alias = settings.alias[sn]?.alias || service.name;
-            const brand = settings.alias[sn]?.brand || "other";
-            const model = settings.alias[sn]?.model || $("unknow");
-            mainListOther.append(`<div class="device" id="${sn}">
-                    <div class="brand">
-                        <img src="brands/${brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
-                        <div class="model">${model}</div>
-                    </div>
-                    <div class="info">
-                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${$("unconnected")}">${$("unconnected")}</span></div>
-                        <div class="realname" title="${sn}">${sn}</div>
-                    </div>
-                    <div class="control">
-                        <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="${$("connect")}">
-                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                <use href="#icon-connect"></use>
-                            </svg>
-                        </div>
-                    </div>
-                </div>`);
-            hiddenConnectedFromOthers();
-        }
+        addFoundDeviceToList(service);
     });
 
     watcherBrowser.on('down', (service) => {
-        let sn;
-        const sn_a = service.name.split("-");
-        if (sn_a.length == 3) {
-            sn = sn_a[1];
-        } else {
-            sn = service.name;
-        }
-        sn = sn.trim();
-        const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
-        _(`.device[id="${sn}"]`).remove();
+        removeFoundDeviceFromList(service)
     });
 }
 
@@ -663,10 +683,14 @@ function updateDevicesList() {
         if (!settings.alias[devices.sn] || settings.alias[device.sn].auto) {
             settings.alias[device.sn] = { auto: true, alias: alias, brand: device.brand, model: device.model };
             fs.writeFile(`${configDir}/user_config.json`, JSON.stringify(settings, null, 4), "utf-8", () => { });
-            const deviceOnOther = _(`.device[id="${device.sn}"]`, mainListOther);
-            _(".brand>img", deviceOnOther)[0].src = `brands/${device.brand}.png`;
-            _(".brand>.model", deviceOnOther).text(device.model);
-            _(".info .alias .t1", deviceOnOther).text(alias);
+            try {
+                const deviceOnOther = _(`.device[id="${device.sn}"]`, mainListOther);
+                _(".brand>img", deviceOnOther)[0].src = `brands/${device.brand}.png`;
+                _(".brand>.model", deviceOnOther).text(device.model);
+                _(".info .alias .t1", deviceOnOther).text(alias);
+            } catch (error) {
+                //失敗可能是因為檢測到多個內容，屬於正常現象
+            }
         }
         // 已連接的設備從探測列表隱藏
         hiddenConnectedFromOthers();
@@ -681,6 +705,66 @@ function updateDevicesList() {
     } else {
         mainListFav.css("display: block");
     }
+}
+
+function updateFoundList(services) {
+    const mainListOther = _(document.querySelector(".main .list .other"));
+    mainListOther.empty();
+    for (const service of services) {
+        addFoundDeviceToList(service);
+    }
+}
+
+function addFoundDeviceToList(service) {
+    // 提取連接所需信息
+    // 通常，你會從 service.addresses 中獲取 IPv4 地址
+    const mainListOther = _(document.querySelector(".main .list .other"));
+    const ipv4Address = service.addresses.find(addr => addr.includes('.') && !addr.includes(':')); // 簡單的 IPv4 判斷
+
+    if (ipv4Address && service.port) {
+        let sn;
+        const sn_a = service.name.split("-");
+        if (sn_a.length == 3) {
+            sn = sn_a[1];
+        } else {
+            sn = service.name;
+        }
+        sn = sn.trim();
+        const alias = settings.alias[sn]?.alias || service.name;
+        const brand = settings.alias[sn]?.brand || "other";
+        const model = settings.alias[sn]?.model || $("unknow");
+        mainListOther.append(`<div class="device" id="${sn}">
+                    <div class="brand">
+                        <img src="brands/${brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
+                        <div class="model">${model}</div>
+                    </div>
+                    <div class="info">
+                        <div class="alias"><span class="t1">${alias}</span>&nbsp;<span class="status" title="${$("unconnected")}">${$("unconnected")}</span></div>
+                        <div class="realname" title="${sn}">${sn}</div>
+                    </div>
+                    <div class="control">
+                        <div class="connect Swait" data-id="${ipv4Address}:${service.port}" onclick="connect('${ipv4Address}', ${service.port})" title="${$("connect")}">
+                            <svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#icon-connect"></use>
+                            </svg>
+                        </div>
+                    </div>
+                </div>`);
+        hiddenConnectedFromOthers();
+    }
+}
+
+function removeFoundDeviceFromList(service) {
+    const mainListOther = _(document.querySelector(".main .list .other"));
+    let sn;
+    const sn_a = service.name.split("-");
+    if (sn_a.length == 3) {
+        sn = sn_a[1];
+    } else {
+        sn = service.name;
+    }
+    sn = sn.trim();
+    _(`.device[id="${sn}"]`, mainListOther).remove();
 }
 
 function hiddenConnectedFromOthers() {
@@ -824,48 +908,49 @@ function connect(ip, port) {
     }
 }
 
-function setLang() {
+async function setLang() {
     const langfile = `${rootDir}/app/locales/${osLanguage}.lang`;
-    const obbody = _("html")[0];
-    const obconfig = { attributes: true, childList: true, subtree: true };
 
     if (langObserver) langObserver.disconnect();
+    let langfiledata;
+    try {
+        langfiledata = fs.readFileSync(langfile, "utf-8");
+    } catch (e) {
+        langfiledata = fs.readFileSync(`${rootDir}/app/locales/en_US.lang`, "utf-8");
+    }
 
-    fs.readFile(langfile, "utf-8", (err, langfiledata) => {
-        if (err) {
-            langfiledata = fs.readFileSync(`${rootDir}/app/locales/en_US.lang`, "utf-8");
-        }
-        langdata = JSON.parse(langfiledata);
+    langdata = JSON.parse(langfiledata);
 
-        const nl = _.getTextNodes(_("html")[0]);
-        for (const tn of nl) {
-            if (tn.nodeValue.trim() == "") continue;
-            if (tn.tempStr == undefined) {
-                tn.tempStr = tn.nodeValue.trim();
-            } else {
-                tn.nodeValue = tn.tempStr;
-            }
-
-            for (const key in langdata) {
-                const nt = langdata[key];
-                tn.nodeValue = tn.nodeValue.replaceAll(`@t-${key};`, nt);
-            }
-            showWindowMenu.label = langdata["showWindow"];
-            quitMenu.label = langdata["quit"];
-            Tray.title = langdata["title"];
+    const nl = _.getTextNodes(_("html")[0]);
+    for (const tn of nl) {
+        if (tn.nodeValue.trim() == "") continue;
+        if (tn.tempStr == undefined) {
+            tn.tempStr = tn.nodeValue.trim();
+        } else {
+            tn.nodeValue = tn.tempStr;
         }
 
+        for (const key in langdata) {
+            const nt = langdata[key];
+            tn.nodeValue = tn.nodeValue.replaceAll(`@t-${key};`, nt);
+        }
+        showWindowMenu.label = langdata["showWindow"];
+        quitMenu.label = langdata["quit"];
+        Tray.title = langdata["title"];
+    }
 
-        const al = _("[title],[placeholder],[value]");
-        al.each(function () {
-            velfun.private.setAttrsLang(this, langdata);
-        });
 
-        langObserver.observe(obbody, obconfig);
-    })
+    const al = _("[title],[placeholder],[value]");
+    al.each(function () {
+        velfun.private.setAttrsLang(this, langdata);
+    });
+
+    langObserver.observe(obbody, obconfig);
+
+    return true;
 }
 
 function $(key) {
     if (!key) return;
-    return langdata[key];
+    return langdata?.[key] || "";
 }
