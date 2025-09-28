@@ -37,11 +37,21 @@ body {
     user-select: none;
 }
 
-body {
+#globalBG {
+    display: block;
+    position: fixed;
+    inset: 0;
     background-image: url(tmp/wallpaper.webp);
     background-repeat: no-repeat;
     background-position: 0 0;
     background-size: 1920px 1080px;
+    border-radius: 15px;
+    z-index: 0;
+}
+
+#globalBG.fallback {
+    background-image: none !important;
+    background-color: whitesmoke !important;
 }
 
 body::after {

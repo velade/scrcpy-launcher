@@ -35,36 +35,6 @@ for platform in "$@"; do
         cd ../../
         rm -rf .packing/linux64
         ;;
-    "win32")
-        echo "打包 win32 平台..."
-        echo "建立臨時目錄..."
-        mkdir -p .packing/win32
-
-        echo "複製項目檔案到臨時目錄..."
-        cd .packing/win32
-        cp -rf ../../src/app app
-        cp -rf ../../src/node_modules node_modules
-        cp -f ../../src/package.json package.json
-        cp -f ../../src/Scrcpy_logo.png Scrcpy_logo.png
-        cp -f ../../src/user_config.json.org user_config.json.org
-
-        echo "解壓平台框架到臨時目錄..."
-        cd ../../nwjs
-        if [ ! -f "nwjs-v0.64.1-win-ia32.zip" ]; then
-            wget https://dl.nwjs.io/v0.64.1/nwjs-v0.64.1-win-ia32.zip
-        fi
-        unzip nwjs-v0.64.1-win-ia32.zip -d ../.packing/win32
-        cd ../.packing/win32
-        mv nwjs-v0.64.1-win-ia32/* ./
-        rm -rf nwjs-v0.64.1-win-ia32
-        mv nw.exe ScrcpyLauncher.exe
-
-        echo "開始打包檔案..."
-        zip_file_win32="Scrcpy_Launcher_Win32.zip"
-        zip -r "../../dist/${current_version}/$zip_file_win32" .
-        cd ../../
-        rm -rf .packing/win32
-        ;;
     "win64")
         echo "打包 win64 平台..."
         echo "建立臨時目錄..."

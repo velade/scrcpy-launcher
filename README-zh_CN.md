@@ -7,6 +7,15 @@
 - 实时刷新的设备列表
 - 设备别名管理
 - 完整的图形化参数设置
+- 支持系统版本：
+    - Windows 10或更新
+    - Ubuntu 20.04或更新
+    - Debian 11或更新
+    - Fedora 32或更新
+    - Arch Linux 最新版（保持滚动更新）
+    - RHEL/CentOS RHEL 9 系列或更新
+    - **不支持Win7及以下，以及glibc低于2.31的Linux发行版**
+    - **暂不支持MacOS，但有需要可以尝试自行移植**
 
 ## 安装
 ### 通过AUR（建议）
@@ -16,37 +25,36 @@
 
 ### 手动安装
 
-#### 1. 依赖
-- android-tools(adb命令)：Scrcpy本身依赖ADB提供连接，你可以：
-    - 安装adb（platform-tools）到系统，并设置path，使adb可以通过`adb`而不是`./adb`或`path/to/adb`执行。 
-    - 安装/解压缩adb到`启动器目录/adb`下，应用将优先使用存放在启动器目录下的adb（**如果你不使用此种方式，请确保启动器目录下没有adb文件夹**）
-- scrcpy：启动器默认并未包含scrcpy，你可以：
-    - 安装Scrcpy到系统，并设置好path（这通常应该是自动的），使Scrcpy可以通过`scrcpy`而不是`./scrcpy`或`path/to/scrcpy`执行。 
-    - 安装/解压缩scrcpy到`启动器目录/scrcpy`下，应用将优先使用存放在启动器目录下的scrcpy（**如果你不使用此种方式，请确保启动器目录下没有scrcpy文件夹**）
+#### 1. 依赖（二选一）
+- 全局依赖
+    - android-tools(adb指令)：Scrcpy本身依赖ADB提供连接，安装adb（platform-tools）到系统，并设定path，使adb可以通过`adb`而不是`./adb`或`path/to/adb`执行。 
+    - scrcpy：启动器默认并未包含scrcpy，安装Scrcpy到系统，并设定好path（这通常应该是自动的），使Scrcpy可以通过`scrcpy`而不是`./scrcpy`或`path/to/scrcpy`执行。
+- 内建依赖
+    - 你也可以安装/解压缩scrcpy到`启动器目录/scrcpy`下，应用将优先使用存放在启动器目录下的scrcpy，由于scrcpy包含adb，因此不需要单独下载adb​​并设定
+
+    **如果你不使用此内建依赖的方式，请确保启动器目录下没有scrcpy档案夹！**
 ##### 内建方式目录结构示例
 ```
 启动器目录(scrcpy-launcher)
 ├── (其他文件)
-├── Scrcpy启动器 或 Scrcpy启动器.exe
-├── adb
-│   ├── (其他文件)
-│   └── adb 或 adb.exe
+├── ScrcpyLauncher 或 ScrcpyLauncher.exe
 └── scrcpy
     ├── (其他文件)
+    ├── adb 或 adb.exe
     └── scrcpy 或 scrcpy.exe
 ```
 #### 2. 解压
 - 将从release下载的压缩包解压到任意位置
-- 直接执行解压后的`Scrcpy启动器`或`Scrcpy启动器.exe`
+- 直接执行解压后的`ScrcpyLauncher`或`ScrcpyLauncher.exe`
 #### 3. 添加桌面启动器图标（可选）
-- （Linux）自行建立.desktop文件，将Exec设为`Scrcpy启动器`的完整路径，将Icon设为程序目录下的`Scrcpy_logo.png`即可。 
-- （Windows）在`Scrcpy启动器.exe`上右键，选择`发送到>>桌面快捷方式`即可。
+- （Linux）自行建立.desktop文件，将Exec设为`ScrcpyLauncher`的完整路径，将Icon设为程序目录下的`Scrcpy_logo.png`即可。 
+- （Windows）在`ScrcpyLauncher.exe`上右键，选择`发送到>>桌面快捷方式`即可。
 
 ## 精简模式
 启动器包含一个精简模式，你可以通过将窗口宽度减少来使其进入，但目前你需要足够的宽度才能访问设置，精简模式下无法查看设置。因此建议在设置完成后再进入精简模式。
 
 ## release.sh 脚本是做什么的？
-release.sh 是一个打包工具，因为种种原因我没有使用nw-builder这类东西，而是自己写了一个简单的脚本。通过`./release.sh <平台>`来使用，你也可以一次指定多个平台，以空格分隔，像这样`./release.sh linux64 win32 win64`，现在支援的平台有linux64 win32 win64。
+release.sh 是一个打包工具，因为种种原因我没有使用nw-builder这类东西，而是自己写了一个简单的脚本。通过`./release.sh <平台>`来使用，你也可以一次指定多个平台，以空格分隔，像这样`./release.sh linux64 win64`，现在支援的平台有linux64 win64。
 
 此脚本会自动下载0.64.1版本的nwjs，压缩包会保留在nwjs文件夹中，后续打包无需再次下载，因为不推荐更高版本的nwjs，因为nw2有大量bug且部分bug几乎没有进行修复（比如一年前就出现的会破坏透明窗体的BUG，而我的圆角窗口需要用到透明窗体）。
 

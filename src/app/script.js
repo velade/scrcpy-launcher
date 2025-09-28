@@ -90,8 +90,16 @@ menu.append(showWindowMenu);
 menu.append(quitMenu);
 Tray.menu = menu;
 
-const adb = fs.existsSync(`${path.dirname(process.execPath)}/adb`) ? `${path.dirname(process.execPath)}/adb/adb` : "adb";
-const scrcpy = fs.existsSync(`${path.dirname(process.execPath)}/scrcpy`) ? `${path.dirname(process.execPath)}/scrcpy/scrcpy` : "scrcpy";
+let adb;
+let scrcpy;
+
+if (fs.existsSync(path.join(path.dirname(process.execPath), "scrcpy"))) {
+    adb = path.join(path.dirname(process.execPath), "scrcpy", process.platform == "win32" ? "adb.exe" : "adb");
+    scrcpy = path.join(path.dirname(process.execPath), "scrcpy", process.platform == "win32" ? "scrcpy.exe" : "scrcpy");
+} else {
+    adb = "adb";
+    scrcpy = "scrcpy";
+}
 
 const execOptions = {
     env: {
@@ -326,14 +334,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function init() {
     _(document.body).ccm({})
-    if (os.platform() == "win32") {
+    if (process.platform == "win32") {
         _(".titlebar").addClass("btr");
     }
     const checklist = [adb, scrcpy];
     for (const command of checklist) {
-        if (!checkCommandSync(command)) {
-            alert(`${$("commandLose1")}${command.toUpperCase()}${$("commandLose1")}`);
-            window.close();
+        if (!checkCommandSync(command) && ["adb", "adb.exe", "scrcpy", "scrcpy.exe"].includes(command)) {
+            alert(`${$("commandLose1")}${command}${$("commandLose2")}`);
+            process.exit("CANT_FIND_DEPENDENCIES")
         }
     }
 
@@ -524,7 +532,7 @@ function init() {
 }
 
 win.on("move", (x, y) => {
-    _(document.body).css(`background-position: -${x}px -${y}px;`);
+    _("#globalBG").css(`background-position: -${x}px -${y}px;`);
 })
 
 // 確保在應用退出時清理
@@ -538,7 +546,8 @@ win.on('close', function () {
 
 function checkCommandSync(command) {
     try {
-        const stdout = execSync(`which ${command}`);
+        const checkCommand = process.platform == "win32" ? "where" : "which";
+        const stdout = execSync(`${checkCommand} ${command}`);
         console.log(`命令 ${command} 存在於: ${stdout.toString().trim()}`);
         return true;
     } catch (error) {
@@ -618,7 +627,7 @@ function updateDevicesList() {
             alias = device.deviceName || device.model || device.sn;
         }
         alias = alias.trim();
-        if (settings.alias[device.sn].auto == false) {
+        if (settings.alias[device.sn] && settings.alias[device.sn].auto == false) {
             mainListFav.append(`<div class="device hidden">
                 <div class="brand">
                     <img src="brands/${device.brand}.png" onerror="this.onerror=null; this.src='brands/other.png'">
@@ -837,25 +846,30 @@ function isObject(obj) {
     return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }
 
-function updateWallpaper() {
-    getWallpaper().then(path => {
-        if (path != wallpaperPath) {
-            const currentScreen = getCurrentWindowScreen();
-            blurImage(path, 30, [currentScreen.bounds.width, currentScreen.bounds.height]).then((img) => {
-                img.toFile(rootDir + "/app/tmp/wallpaper.webp").then(() => {
-                    _(document.body).css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
-                    setTimeout(() => {
-                        updateWallpaper();
-                    }, 100)
-                });
-            })
-            wallpaperPath = path;
-        } else {
-            setTimeout(() => {
-                updateWallpaper();
-            }, 100)
-        }
-    })
+async function updateWallpaper() {
+    const newPath = await getWallpaper();
+    const extName = path.extname(newPath);
+    if (![".jpg", ".jpeg", ".bmp", ".webp", ".png", ".tiff"].includes(extName.toLowerCase())) {
+        _("#globalBG").addClass("fallback");
+        setTimeout(() => {
+            updateWallpaper();
+        }, 500)
+    } else if (newPath != wallpaperPath) {
+        const currentScreen = getCurrentWindowScreen();
+        const bluredWallpaper = await blurImage(newPath, 30, [currentScreen.bounds.width, currentScreen.bounds.height]);
+        await bluredWallpaper.toFile(os.tmpdir + "/app/tmp/wallpaper.webp");
+        _("#globalBG").css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
+        _("#globalBG").removeClass("fallback");
+        wallpaperPath = newPath;
+        setTimeout(() => {
+            updateWallpaper();
+        }, 500)
+    } else {
+        setTimeout(() => {
+            updateWallpaper();
+        }, 500)
+    }
+    return true;
 }
 async function blurImage(inputPath, blurRadius, targetSize) {
     const processor = new ImageBlurProcessor(inputPath, targetSize, 0.25, true);
