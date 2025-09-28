@@ -2,7 +2,7 @@
     "main": "app/index.html",
     "name": "scrcpy_launcher",
     "description": "",
-    "version": "3.3.0",
+    "version": "3.3.1",
     "keywords": [ ],
     "chromium-args": "",
     "window": {

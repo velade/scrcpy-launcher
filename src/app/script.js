@@ -857,7 +857,7 @@ async function updateWallpaper() {
     } else if (newPath != wallpaperPath) {
         const currentScreen = getCurrentWindowScreen();
         const bluredWallpaper = await blurImage(newPath, 30, [currentScreen.bounds.width, currentScreen.bounds.height]);
-        await bluredWallpaper.toFile(os.tmpdir + "/app/tmp/wallpaper.webp");
+        await bluredWallpaper.toFile(rootDir + "/app/tmp/wallpaper.webp");
         _("#globalBG").css(`background-image: url(tmp/wallpaper.webp?t=${Date.now()});`);
         _("#globalBG").removeClass("fallback");
         wallpaperPath = newPath;
